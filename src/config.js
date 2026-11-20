@@ -5,7 +5,7 @@
 module.exports = {
   // ---- Kanalen en rollen (rechtermuisknop → ID kopiëren, met Ontwikkelaarsmodus aan) ----
   // Staan ze hier ingevuld, dan is /ticket-setup niet nodig.
-  panelChannelId: '',      // kanaal waar het ticketpaneel staat
+  panelChannelId: '1516461284374216774', // kanaal waar het ticketpaneel staat
   staffRoleId: '',         // ziet Vragen-tickets, wordt gegeven bij geaccepteerde sollicitatie
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
   transcriptChannelId: '', // (optioneel) transcripts van gesloten tickets
