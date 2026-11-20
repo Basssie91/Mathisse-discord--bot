@@ -67,3 +67,6 @@ Zoals Pingcord: elke 3 minuten controleert de bot de kanalen uit `/content`. You
 
 ## Staff-overzicht
 In `staffOverviewChannelId` staat een embed met alle commands en wie ze mag gebruiken. Wordt bij elke start opnieuw opgebouwd uit de geregistreerde commands (zet bij een nieuw command de rechten in `ACCESS` in `src/staffOverview.js`) en teruggezet als het weg is.
+
+## Automatische staffrol
+Heeft iemand één van de rollen in `staffTriggerRoleIds`, dan krijgt hij `staffRoleId`; heeft hij er geen meer, dan gaat de staffrol weg. Bij elke start wordt iedereen gecontroleerd.

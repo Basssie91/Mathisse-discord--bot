@@ -52,6 +52,7 @@ const items = [
   { id: 'cmd-staff-update', section: '🛡️ Staff', text: 'Nieuw: **/staff-update** om aannames, promoties, degradaties en ontslagen te plaatsen via een formulier' },
   { id: 'cmd-commands', section: '⌨️ Commando\'s', text: 'Nieuw: **/commands** laat zien welke commands en functies er zijn' },
   { id: 'staff-overzicht', section: '🛡️ Staff', text: 'Nieuw **staff-overzicht** met alle commands en wie ze kan gebruiken, wordt automatisch bijgewerkt' },
+  { id: 'staffrol-auto', section: '🛡️ Staff', text: 'Je krijgt nu **automatisch de staffrol** bij een staff-functie, en verliest hem als je geen functie meer hebt' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';

@@ -73,6 +73,9 @@ require('./src/content')(client);
 // /staff-update
 require('./src/staffUpdate')(client);
 
+// Staffrol automatisch geven/weghalen op basis van functierollen
+require('./src/staffRole')(client);
+
 // /commands (overzicht voor iedereen)
 require('./src/help')(client);
 
