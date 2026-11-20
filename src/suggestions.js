@@ -77,9 +77,6 @@ const STATUS = {
 };
 
 function render(s, author) {
-  const total = s.up.length + s.down.length;
-  const pct = total ? Math.round((s.up.length / total) * 100) : 0;
-  const bar = total ? '🟩'.repeat(Math.round(pct / 10)) + '🟥'.repeat(10 - Math.round(pct / 10)) : '⬜'.repeat(10);
   const st = STATUS[s.status];
 
   const embed = new EmbedBuilder()
@@ -88,7 +85,7 @@ function render(s, author) {
     .setTitle(`💡 Suggestie #${s.n}`)
     .setDescription(s.text)
     .addFields(
-      { name: 'Stemmen', value: `${bar}\n👍 **${s.up.length}**  •  👎 **${s.down.length}**  •  ${pct}% voor` },
+      { name: 'Stemmen', value: `👍 **${s.up.length}**  •  👎 **${s.down.length}**` },
       { name: 'Status', value: st.text + (s.handledBy ? ` door <@${s.handledBy}>` : '') },
     )
     .setTimestamp(s.createdAt);
