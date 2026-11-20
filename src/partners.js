@@ -4,6 +4,7 @@ const {
   ModalBuilder, TextInputBuilder, TextInputStyle,
 } = require('discord.js');
 const cfg = require('./config');
+const anon = require('./anon');
 const { load, save, newId, ts } = require('./store');
 const { settings } = require('./tickets');
 
@@ -106,7 +107,7 @@ async function markDone(interaction, req, accepted, extra) {
   await msg.edit({
     embeds: [EmbedBuilder.from(msg.embeds[0])
       .setColor(accepted ? '#57F287' : '#ED4245')
-      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `door ${interaction.user} ${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
+      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `door ${anon.mention(interaction.user, 'het beheer')} ${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
     components: [],
   });
 }

@@ -4,6 +4,7 @@ const {
   ModalBuilder, TextInputBuilder, TextInputStyle, RoleSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
+const anon = require('./anon');
 const { load, save, newId, ts } = require('./store');
 
 const FILE = 'applications.json';
@@ -85,7 +86,7 @@ async function markDone(interaction, app, accepted, extra) {
     embeds: [EmbedBuilder.from(msg.embeds[0])
       .setColor(accepted ? '#57F287' : '#ED4245')
       .setTitle(accepted ? '✅  SOLLICITATIE GEACCEPTEERD' : '❌  SOLLICITATIE AFGEWEZEN')
-      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `door ${interaction.user} ${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
+      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `door ${anon.mention(interaction.user, 'het beheer')} ${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
     components: [],
   });
 }

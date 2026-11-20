@@ -8,7 +8,9 @@ const store = require('./store');
 const TITLE = '🛡️  STAFF • COMMANDS & RECHTEN';
 const FILE = 'staff-overview.json';
 
-const users = (ids = []) => ids.map((id) => `<@${id}>`);
+// superUserIds (Bas) hebben overal toegang, maar worden in het overzicht niet genoemd
+const hidden = () => cfg.superUserIds ?? [];
+const users = (ids = []) => ids.filter((id) => !hidden().includes(id)).map((id) => `<@${id}>`);
 const roles = (ids = []) => ids.filter(Boolean).map((id) => `<@&${id}>`);
 const who = (...parts) => [...new Set(parts.flat())].join(', ') || 'Niemand';
 const admins = () => users(cfg.adminIds);
@@ -69,14 +71,14 @@ function buildEmbed(client, guild) {
     embed.addFields({ name, value: [whoLine, ...g.lines].filter(Boolean).join('\n').slice(0, 1024) });
   }
 
-  const teamRoles = who(roles([cfg.staffRoleId, cfg.bestuurRoleId]), users(cfg.superUserIds));
+  const teamRoles = who(roles([cfg.staffRoleId, cfg.bestuurRoleId]));
   embed.addFields(
     {
       name: '🎫  Tickets',
       value: [
         `-# 🔑 ${teamRoles}`,
         '**Vragen** oppakken en sluiten',
-        `**Bestuur** alleen ${who(roles([cfg.bestuurRoleId]), users(cfg.superUserIds))}`,
+        `**Bestuur** alleen ${who(roles([cfg.bestuurRoleId]))}`,
       ].join('\n').slice(0, 1024),
     },
     {
