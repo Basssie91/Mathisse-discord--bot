@@ -17,7 +17,11 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// MessageContent is nodig zodat transcripts de tekst van berichten bevatten
+// (zet 'Message Content Intent' aan in de Discord Developer Portal → Bot)
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+});
 
 const renewReminder = require('./renewReminder');
 
@@ -27,7 +31,13 @@ const commands = [
     .setDescription('Herstart de bot (alleen voor beheerders van de bot)')
     .toJSON(),
   renewReminder.command,
+  require('./src/tickets').command,
 ];
+
+// Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag
+require('./src/tickets')(client);
+require('./src/applications')(client);
+require('./src/partners')(client);
 
 // Verlengingsherinnering
 renewReminder(client, {
