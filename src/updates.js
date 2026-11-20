@@ -35,6 +35,8 @@ const updates = [
   ['Tickets', 'Bij het accepteren van een sollicitatie kies je nu zelf welke rol iemand krijgt.'],
   ['Commands', 'Het command /ticket-setup is verwijderd, het ticketsysteem stelt zichzelf in.'],
   ['Welkom', 'Nieuwe leden krijgen nu een welkomstbericht.'],
+  ['Welkom', 'Nieuwe leden krijgen bij het joinen automatisch een rol.'],
+  ['Regels', 'De serverregels staan nu in het regelskanaal en komen automatisch terug als ze verwijderd worden.'],
 ];
 
 const textOf = ([category, text]) => `(${category}): ${text}`;

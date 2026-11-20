@@ -21,7 +21,10 @@ Alle instellingen (kanalen, rollen, eigenaar, vragen van de sollicitatie) staan 
 **Let op:** zet in de Discord Developer Portal → Bot de **Message Content Intent** en de **Server Members Intent** aan, anders start de bot niet.
 
 ## Welkomstbericht
-Nieuwe leden krijgen een welkomstbericht met banner in het kanaal `welcomeChannelId` uit `src/config.js`.
+Nieuwe leden krijgen de rol `joinRoleId` en een welkomstbericht met banner in het kanaal `welcomeChannelId` uit `src/config.js`.
+
+## Regels
+De regels staan in `src/rules.js` en worden in `rulesChannelId` geplaatst. Bij elke start en na verwijderen zet de bot ze terug.
 
 ## Verlengingsherinnering
 Het gratis plan van Bot-Hosting moet elke 4 dagen verlengd worden. De bot stuurt 3 dagen na de laatste verlenging een DM naar de gebruiker(s) in `notifyIds`, en daarna elke 12 uur tot iemand op **✅ Ik heb verlengd** klikt.

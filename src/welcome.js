@@ -45,8 +45,14 @@ async function sendWelcome(member) {
 }
 
 module.exports = (client) => {
-  client.on(Events.GuildMemberAdd, (member) => {
+  client.on(Events.GuildMemberAdd, async (member) => {
     if (member.user.bot) return;
+    // Rol geven bij joinen
+    if (cfg.joinRoleId) {
+      await member.roles.add(cfg.joinRoleId, 'Rol bij joinen')
+        .then(() => console.log(`[welkom] Rol gegeven aan ${member.user.tag}`))
+        .catch((e) => console.warn(`[welkom] Kon geen rol geven aan ${member.user.tag}: ${e.message}`));
+    }
     sendWelcome(member);
   });
 };

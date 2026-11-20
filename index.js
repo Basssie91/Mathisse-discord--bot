@@ -43,6 +43,9 @@ require('./src/partners')(client);
 // Welkomstbericht voor nieuwe leden
 require('./src/welcome')(client);
 
+// Regels-embed in het regelskanaal (komt terug als hij weg is)
+require('./src/rules')(client);
+
 // Updates automatisch in het updatekanaal plaatsen
 require('./src/updates')(client);
 
