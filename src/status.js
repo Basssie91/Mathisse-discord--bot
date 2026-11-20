@@ -2,6 +2,7 @@
 // 🟢 Online  •  🔄 Herstarten  •  🔴 Offline  •  ⚠️ Onverwacht offline geweest (bv. crash of server uit)
 // Elke minuut wordt "laatst gecontroleerd" bijgewerkt. Stond de bot uit zonder netjes af te sluiten,
 // dan ziet hij dat bij de volgende start en zet hij de storing in de geschiedenis.
+// De geschiedenis begint bij elke (her)start opnieuw (max. 8 regels).
 const { Events, EmbedBuilder } = require('discord.js');
 const cfg = require('./config');
 const store = require('./store');
@@ -89,6 +90,9 @@ module.exports = (c) => {
 
   client.once(Events.ClientReady, async () => {
     const now = Date.now();
+    // Geschiedenis loopt alleen tot de volgende (her)start: bij elke start opnieuw beginnen
+    const restartedBy = state.status === 'restarting' ? state.history[0]?.text : null;
+    state.history = restartedBy ? [{ at: state.since, text: restartedBy }] : [];
     if (state.status === 'restarting') {
       addHistory(`✅ Herstart klaar (duurde ${Math.max(1, Math.round((now - state.since) / 1000))} sec)`);
     } else if (state.lastSeen && !state.clean) {
