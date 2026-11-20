@@ -39,6 +39,9 @@ require('./src/tickets')(client);
 require('./src/applications')(client);
 require('./src/partners')(client);
 
+// Updates automatisch in het updatekanaal plaatsen
+require('./src/updates')(client);
+
 // Verlengingsherinnering
 renewReminder(client, {
   notifyIds: ['1506618917324460114'], // krijgt de DM-herinnering
