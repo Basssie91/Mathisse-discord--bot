@@ -37,6 +37,9 @@ module.exports = {
   countingChannelId: '1524408810654138378',
   countingStartAt: 134,
 
+  // Botstatus (online / herstarten / offline)
+  statusChannelId: '1573465938135621694',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

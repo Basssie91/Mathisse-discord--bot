@@ -55,3 +55,6 @@ In `wordChainChannelId`: elk woord begint met de laatste letter van het vorige, 
 
 ## Tellen
 In `countingChannelId`: steeds het volgende getal, niet twee keer achter elkaar, fout = opnieuw bij 1. Begint bij `countingStartAt` + 1 (135). Gemiste berichten worden na een herstart alsnog verwerkt.
+
+## Botstatus
+In `statusChannelId` staat één bericht dat de bot zelf bijwerkt: 🟢 online (met ping en "laatst gecontroleerd", elke minuut), 🔄 herstarten (via /restart) en 🔴 offline (bij netjes stoppen of een crash). Stond de bot uit zonder netjes af te sluiten, dan komt er bij de volgende start een ⚠️ storing in de geschiedenis.

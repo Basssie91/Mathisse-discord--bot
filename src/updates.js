@@ -43,6 +43,7 @@ const items = [
   { id: 'woordketting-inhalen', section: '🎮 Spellen', text: 'Woorden die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
   { id: 'tellen', section: '🎮 Spellen', text: 'Nieuw: **tellen**! We gaan verder waar jullie gebleven waren, bij **135**' },
   { id: 'tellen-inhalen', section: '🎮 Spellen', text: 'Getallen die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
+  { id: 'botstatus', section: '⚙️ Bot', text: 'Nieuw **statuskanaal**: zie of de bot 🟢 online, 🔄 aan het herstarten of 🔴 offline is, met de geschiedenis van storingen' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';

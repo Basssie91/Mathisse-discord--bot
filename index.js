@@ -63,6 +63,10 @@ require('./src/wordchain')(client);
 // Tellen (haalt gemiste getallen in na een herstart)
 require('./src/counting')(client);
 
+// Botstatus in het statuskanaal
+const status = require('./src/status');
+status(client);
+
 // Verlengingsherinnering
 renewReminder(client, {
   notifyIds: ['1506618917324460114'], // krijgt de DM-herinnering
@@ -120,6 +124,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     await interaction.reply({ content: '🔄 Bot wordt herstart...', flags: MessageFlags.Ephemeral });
     console.log(`/restart door ${interaction.user.tag} (${interaction.user.id})`);
+    await status.restarting(interaction.user);
 
     if (BH_API_KEY) {
       try {
@@ -127,6 +132,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         return; // Bot-Hosting stopt en start het proces zelf
       } catch (err) {
         console.error(err);
+        await status.failed(err.message);
         await interaction.followUp({
           content: `Herstart via Bot-Hosting mislukt: ${err.message}`,
           flags: MessageFlags.Ephemeral,
