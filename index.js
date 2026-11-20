@@ -38,6 +38,7 @@ const commands = [
   require('./src/content').command,
   require('./src/content').listCommand,
   require('./src/staffUpdate').command,
+  require('./src/help').command,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag
@@ -71,6 +72,9 @@ require('./src/content')(client);
 
 // /staff-update
 require('./src/staffUpdate')(client);
+
+// /commands (overzicht voor iedereen)
+require('./src/help')(client);
 
 // Botstatus in het statuskanaal
 const status = require('./src/status');

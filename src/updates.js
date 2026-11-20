@@ -49,6 +49,7 @@ const items = [
   { id: 'content', section: '📡 Content', text: 'Nieuw: **contentmeldingen**! Een melding bij een nieuwe YouTube-video of als een streamer live gaat op Twitch of Kick' },
   { id: 'cmd-content', section: '⌨️ Commando\'s', text: 'Nieuw: **/content** opent een formulier om streamers en YouTubers toe te voegen, **/content-lijst** laat ze allemaal zien' },
   { id: 'cmd-staff-update', section: '🛡️ Staff', text: 'Nieuw: **/staff-update** om aannames, promoties, degradaties en ontslagen te plaatsen via een formulier' },
+  { id: 'cmd-commands', section: '⌨️ Commando\'s', text: 'Nieuw: **/commands** laat zien welke commands en functies er zijn' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
