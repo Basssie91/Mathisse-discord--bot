@@ -10,6 +10,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 - `/giveaway` – opent een formulier (prijs, aantal winnaars 1-10, duur 1 uur t/m 4 weken, uitleg) en start de giveaway in `giveawayChannelId`. Voor `adminIds` en `giveawayRoleIds`.
 - `/content` – formulier om een YouTuber of streamer toe te voegen (link + wie taggen). `/content-lijst` – overzicht en verwijderen. Alleen `adminIds`.
 - `/staff-update` – formulier (persoon, Aangenomen/Ontslagen/Promotie/Degraderen, rol, reden) → bericht in `staffUpdateChannelId`. Voor `adminIds` en `staffUpdateRoleIds`.
+- `/template` – alleen in tickets: formulier met de templates Thumbnail (YT-kanaal, wat erop moet, crimi/bovenwereld) of Algemene vraag; wordt in het ticket gezet met de naam van wie het invulde.
 - `/changelog` – changelog bekijken, regels toevoegen en publiceren (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem
