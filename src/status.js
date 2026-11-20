@@ -5,7 +5,6 @@
 // De geschiedenis begint bij elke (her)start opnieuw (max. 8 regels).
 const { Events, EmbedBuilder } = require('discord.js');
 const cfg = require('./config');
-const anon = require('./anon');
 const store = require('./store');
 
 const FILE = 'status.json';
@@ -129,5 +128,5 @@ module.exports = (c) => {
 };
 
 // Voor /restart: 🔄 Herstarten tonen voordat de bot stopt
-module.exports.restarting = (user) => set('restarting', `🔄 Herstart door ${user ? anon.mention(user) : 'het systeem'}`);
+module.exports.restarting = (user) => set('restarting', `🔄 Herstart door ${user ? `<@${user.id}>` : 'het systeem'}`);
 module.exports.failed = (why) => set('online', `❌ Herstart mislukt: ${String(why).slice(0, 80)}`);

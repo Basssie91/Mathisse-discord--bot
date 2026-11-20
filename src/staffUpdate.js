@@ -8,7 +8,6 @@ const {
   StringSelectMenuBuilder, UserSelectMenuBuilder, RoleSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
-const anon = require('./anon');
 
 const TYPES = {
   aangenomen: { label: 'Aangenomen', emoji: '✅', needsRole: true },
@@ -74,7 +73,7 @@ async function submit(interaction) {
     content: [
       `${type.emoji} | ${user}`,
       `**${type.label}** ➜ ${detail}`,
-      `-# Uitgeschreven door: ${anon.mention(interaction.user, 'het beheer')}`,
+      `-# Uitgeschreven door: ${interaction.user}`,
     ].join('\n'),
     allowedMentions: { parse: [] }, // namen en rollen zonder iemand te pingen
   });

@@ -4,7 +4,6 @@ const {
   ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, AttachmentBuilder, StringSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
-const anon = require('./anon');
 const store = require('./store');
 const { buildTranscript } = require('./transcript');
 
@@ -184,14 +183,12 @@ async function claim(interaction) {
     return interaction.reply({ content: 'Alleen het team kan een ticket oppakken.', flags: MessageFlags.Ephemeral });
   }
   const row = ActionRowBuilder.from(interaction.message.components[0]);
-  row.components[0].setDisabled(true).setLabel(`Opgepakt door ${anon.name(interaction.user, interaction.member.displayName)}`.slice(0, 80));
+  row.components[0].setDisabled(true).setLabel(`Opgepakt door ${interaction.member.displayName}`.slice(0, 80));
   await interaction.update({ components: [row] });
   if (!interaction.channel.name.startsWith('✅')) {
     interaction.channel.setName(`✅${interaction.channel.name}`.slice(0, 100), 'Ticket opgepakt').catch(() => {});
   }
-  await interaction.channel.send(anon.isHidden(interaction.user.id)
-    ? '🙋 Een teamlid heeft dit ticket opgepakt en helpt je verder.'
-    : `🙋 ${interaction.user} heeft dit ticket opgepakt en helpt je verder.`);
+  await interaction.channel.send(`🙋 ${interaction.user} heeft dit ticket opgepakt en helpt je verder.`);
 }
 
 async function askClose(interaction) {
@@ -230,7 +227,7 @@ async function doClose(interaction) {
   const { channel, user } = interaction;
   const { guild } = channel;
   await channel.send({
-    embeds: [new EmbedBuilder().setColor('#ED4245').setDescription(`🔒 Ticket gesloten door ${anon.mention(user)}.\n**Reden:** ${reason}\n\nTranscript wordt gemaakt, het kanaal wordt daarna verwijderd.`)],
+    embeds: [new EmbedBuilder().setColor('#ED4245').setDescription(`🔒 Ticket gesloten door ${user}.\n**Reden:** ${reason}\n\nTranscript wordt gemaakt, het kanaal wordt daarna verwijderd.`)],
     allowedMentions: { parse: [] },
   });
   console.log(`[tickets] ${user.tag} sloot ${channel.name} (${reason})`);
@@ -243,7 +240,7 @@ async function doClose(interaction) {
     const subject = first?.embeds[0]?.fields?.find((f) => f.name.includes('Onderwerp'))?.value;
     const typeLabel = type ? `${type.emoji} ${type.label}` : 'Onbekend';
     const { html, count } = await buildTranscript(channel, {
-      subject, type: typeLabel, opener: opener?.tag ?? 'Onbekend', closer: anon.name(user, user.tag, 'Team'), reason,
+      subject, type: typeLabel, opener: opener?.tag ?? 'Onbekend', closer: user.tag, reason,
     });
     const file = () => new AttachmentBuilder(Buffer.from(html, 'utf8'), { name: `transcript-${channel.name}.html` });
     // Download-knop: geeft bij elke klik een verse link (Discord laat bestandslinks na een tijd verlopen)
@@ -261,7 +258,7 @@ async function doClose(interaction) {
           .addFields(
             { name: '🏷️ Soort', value: typeLabel, inline: true },
             { name: '👤 Geopend door', value: opener ? `${opener}` : 'Onbekend', inline: true },
-            { name: '🔒 Gesloten door', value: anon.mention(user), inline: true },
+            { name: '🔒 Gesloten door', value: `${user}`, inline: true },
             { name: '💬 Berichten', value: `${count}`, inline: true },
             { name: '🕒 Geopend', value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:f>`, inline: true },
             { name: '🔒 Reden van sluiten', value: reason.slice(0, 1024) },
@@ -278,7 +275,7 @@ async function doClose(interaction) {
         embeds: [new EmbedBuilder()
           .setColor(cfg.color)
           .setTitle(`🧾 Je ticket in ${guild.name} is gesloten`)
-          .setDescription(`Je **${type?.label ?? ''}** ticket is gesloten door **${anon.name(interaction.user, interaction.member.displayName)}**.\n🔒 **Reden:** ${reason}\n\nIn de bijlage vind je het hele gesprek. Bedankt voor je bericht! 💙`)
+          .setDescription(`Je **${type?.label ?? ''}** ticket is gesloten door **${interaction.member.displayName}**.\n🔒 **Reden:** ${reason}\n\nIn de bijlage vind je het hele gesprek. Bedankt voor je bericht! 💙`)
           .setTimestamp()],
         files: [file()],
         components: [downloadRow()],

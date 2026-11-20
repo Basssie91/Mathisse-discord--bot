@@ -6,7 +6,6 @@ const {
   ModalBuilder, LabelBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
-const anon = require('./anon');
 const { load, save, newId, ts } = require('./store');
 
 const FILE = 'giveaways.json';
@@ -58,7 +57,7 @@ function embedFor(g, guild) {
     ended ? `🏁 **Afgelopen** ${ts(g.endsAt)}` : `⏰ Eindigt ${ts(g.endsAt)} (${ts(g.endsAt, 'f')})`,
     `🏆 **${g.winners}** winnaar${g.winners === 1 ? '' : 's'}`,
     `👥 **${g.entries.length}** deelnemer${g.entries.length === 1 ? '' : 's'}`,
-    `🎙️ Georganiseerd door ${anon.isHidden(g.hostId) ? 'het team' : `<@${g.hostId}>`}`,
+    `🎙️ Georganiseerd door <@${g.hostId}>`,
   ];
   if (ended) {
     lines.push('', g.winnerIds.length ? `🎉 **Winnaar${g.winnerIds.length === 1 ? '' : 's'}:** ${g.winnerIds.map((id) => `<@${id}>`).join(', ')}` : '😕 Niemand deed mee, dus er is geen winnaar.');
@@ -121,10 +120,10 @@ async function endGiveaway(client, id) {
   if (msg) await msg.edit({ embeds: [embedFor(g, channel.guild)], components: buttons(g) }).catch(() => {});
   await channel.send({
     content: g.winnerIds.length
-      ? `🎉 Gefeliciteerd ${g.winnerIds.map((u) => `<@${u}>`).join(', ')}! Je hebt **${g.prize}** gewonnen! ${anon.isHidden(g.hostId) ? 'Maak een ticket aan om je prijs te ontvangen.' : `Neem contact op met <@${g.hostId}>.`}`
+      ? `🎉 Gefeliciteerd ${g.winnerIds.map((u) => `<@${u}>`).join(', ')}! Je hebt **${g.prize}** gewonnen! Neem contact op met <@${g.hostId}>.`
       : `😕 Niemand deed mee aan **${g.prize}**, dus er is geen winnaar.`,
     reply: msg ? { messageReference: msg.id } : undefined,
-    allowedMentions: { users: [...g.winnerIds, ...(anon.isHidden(g.hostId) ? [] : [g.hostId])] },
+    allowedMentions: { users: [...g.winnerIds, g.hostId] },
   }).catch(() => {});
   console.log(`[giveaway] ${g.prize} afgelopen, winnaars: ${g.winnerIds.join(', ') || 'geen'}`);
 }
