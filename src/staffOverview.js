@@ -87,8 +87,8 @@ function buildEmbed(client, guild) {
         `-# 🔑 ${who(admins())}`,
         '**Sollicitaties** accepteren of afwijzen',
         '**Partneraanvragen** accepteren of afwijzen',
-        `-# 🔑 ${who(roles([cfg.staffRoleId, cfg.bestuurRoleId]), admins())}`,
         '**Suggesties** goedkeuren of afwijzen',
+
         `-# 🔑 ${who(roles(cfg.giveawayRoleIds), admins())}`,
         '**Giveaway** beëindigen of nieuwe winnaar',
       ].join('\n').slice(0, 1024),

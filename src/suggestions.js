@@ -1,5 +1,5 @@
 // Suggestiepaneel: leden dienen via een knop een suggestie in, iedereen stemt met 👍/👎,
-// het team keurt goed of af. Elke suggestie krijgt een eigen draadje om over te praten.
+// de beheerders (Bas en Mathisse) keuren goed of af. Elke suggestie krijgt een eigen draadje om over te praten.
 // Het paneel staat altijd onderaan, wordt bij elke start gecontroleerd en komt terug als het verwijderd wordt.
 const path = require('node:path');
 const {
@@ -15,9 +15,8 @@ const BANNER_FILE = 'banner.png';
 const BANNER_PATH = path.join(__dirname, '..', 'assets', BANNER_FILE);
 
 const data = () => load(FILE, { count: 0, items: {}, panelId: null });
-// Team: staffrol, bestuurrol, beheerders en superUsers
-const isStaff = (m) => cfg.adminIds.includes(m.id) || (cfg.superUserIds ?? []).includes(m.id)
-  || m.roles.cache.some((r) => [cfg.staffRoleId, cfg.bestuurRoleId].includes(r.id));
+// Goedkeuren/afwijzen: alleen de beheerders (Bas en Mathisse)
+const isStaff = (m) => cfg.adminIds.includes(m.id);
 
 // ---------- Paneel (staat altijd onderaan) ----------
 function panel(guild) {
@@ -156,7 +155,7 @@ async function vote(interaction, up) {
 
 async function handle(interaction, approved) {
   if (!isStaff(interaction.member)) {
-    return interaction.reply({ content: '❌ Alleen het team kan suggesties goedkeuren of afwijzen.', flags: MessageFlags.Ephemeral });
+    return interaction.reply({ content: '❌ Alleen de beheerders kunnen suggesties goedkeuren of afwijzen.', flags: MessageFlags.Ephemeral });
   }
   const d = data();
   const s = d.items[interaction.message.id];
