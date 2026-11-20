@@ -11,7 +11,7 @@ const {
 } = require('discord.js');
 const cfg = require('./config');
 
-const CHANNEL_ID = '1569359142722867467';
+const CHANNEL_ID = '1554884573274574908';
 const AUTHOR_ID = '1057307298894196756'; // Bas: staat onder elke update
 const COLOR = '#3B8BEB';
 
