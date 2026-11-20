@@ -44,6 +44,8 @@ const items = [
   { id: 'tellen', section: '🎮 Spellen', text: 'Nieuw: **tellen**! We gaan verder waar jullie gebleven waren, bij **135**' },
   { id: 'tellen-inhalen', section: '🎮 Spellen', text: 'Getallen die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
   { id: 'botstatus', section: '⚙️ Bot', text: 'Nieuw **statuskanaal**: zie of de bot 🟢 online, 🔄 aan het herstarten of 🔴 offline is, met de geschiedenis van storingen' },
+  { id: 'content', section: '📡 Content', text: 'Nieuw: **contentmeldingen**! Een melding bij een nieuwe YouTube-video of als een streamer live gaat op Twitch of Kick' },
+  { id: 'cmd-content', section: '⌨️ Commando\'s', text: 'Nieuw: **/content** om streamers en YouTubers toe te voegen met hun link' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
@@ -58,7 +60,7 @@ const nextVersion = () => `v1.${loadState().published.length + 1}`;
 const isAdmin = (user) => cfg.adminIds.includes(user.id);
 
 // Volgorde van de kopjes: eerst serverdingen, commando's en bot als laatste
-const RANK = ['🎁 Giveaways', '🎮 Spellen', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
+const RANK = ['🎁 Giveaways', '📡 Content', '🎮 Spellen', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
 const rank = (name) => { const i = RANK.indexOf(name); return i === -1 ? RANK.length - 2 : i; };
 
 function buildEmbed(guild, list, title) {

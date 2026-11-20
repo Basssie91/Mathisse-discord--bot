@@ -40,6 +40,9 @@ module.exports = {
   // Botstatus (online / herstarten / offline)
   statusChannelId: '1573465938135621694',
 
+  // Contentmeldingen (YouTube, Twitch, Kick), beheren met /content
+  contentChannelId: '1516133257933226090',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

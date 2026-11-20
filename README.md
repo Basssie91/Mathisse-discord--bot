@@ -8,6 +8,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 
 - `/opruimen` – berichten verwijderen (1-100, optioneel van één persoon). Voor `purgeRoleIds` en `purgeUserIds` in `src/config.js`.
 - `/giveaway` – opent een formulier (prijs, aantal winnaars 1-10, duur 1 uur t/m 4 weken, uitleg) en start de giveaway in `giveawayChannelId`. Voor `adminIds` en `giveawayRoleIds`.
+- `/content toevoegen|verwijderen|lijst` – contentmeldingen beheren (YouTube, Twitch, Kick) in `contentChannelId`. Alleen `adminIds`.
 - `/changelog` – changelog bekijken, regels toevoegen en publiceren (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem
@@ -58,3 +59,6 @@ In `countingChannelId`: steeds het volgende getal, niet twee keer achter elkaar,
 
 ## Botstatus
 In `statusChannelId` staat één bericht dat de bot zelf bijwerkt: 🟢 online (met ping en "laatst gecontroleerd", elke minuut), 🔄 herstarten (via /restart) en 🔴 offline (bij netjes stoppen of een crash). Stond de bot uit zonder netjes af te sluiten, dan komt er bij de volgende start een ⚠️ storing in de geschiedenis.
+
+## Contentmeldingen
+Zoals Pingcord: elke 3 minuten controleert de bot de kanalen uit `/content`. YouTube via de openbare RSS-feed (nieuwe video's), Twitch via decapi.me en Kick via de openbare kick.com-API (live gaan). Optioneel een rol (of @everyone) die getagd wordt.
