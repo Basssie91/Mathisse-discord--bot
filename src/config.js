@@ -14,7 +14,7 @@ module.exports = {
   partnerChannelId: '1571121191614283919', // (optioneel) geaccepteerde partners
   partnerRequestChannelId: '1573456737401311302', // nieuwe partneraanvragen (afhandelen: adminIds)
   applicationChannelId: '1573457687113637978', // nieuwe staff-sollicitaties (afhandelen: adminIds)
-  partnerRoleId: '',       // (optioneel) rol voor partners
+  partnerRoleId: '1516770982948245671', // rol die geaccepteerde partners krijgen
 
   // Eigenaar: krijgt staff-sollicitaties en partneraanvragen in zijn DM en handelt ze af
   ownerId: '1506618917324460114',

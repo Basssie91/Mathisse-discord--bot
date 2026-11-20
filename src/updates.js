@@ -34,6 +34,7 @@ const items = [
   { id: 'partners-formulier', section: '🤝 Partners', text: '**Partneraanvragen** gaan via een formulier, de uitnodigingslink wordt gecontroleerd' },
   { id: 'partners-kanaal', section: '🤝 Partners', text: 'Aanvragen komen in een **eigen kanaal** en worden door de beheerders afgehandeld' },
   { id: 'partners-plaatsen', section: '🤝 Partners', text: 'Geaccepteerde partners worden **automatisch geplaatst** in het partnerkanaal' },
+  { id: 'partners-rol', section: '🤝 Partners', text: 'Geaccepteerde partners krijgen nu **automatisch de partnerrol**' },
   { id: 'welkom-bericht', section: '👋 Welkom', text: 'Nieuwe leden krijgen een **welkomstbericht**' },
   { id: 'welkom-rol', section: '👋 Welkom', text: 'Nieuwe leden krijgen bij het joinen **automatisch een rol**' },
   { id: 'regels', section: '📜 Regels', text: 'De **serverregels** staan in het regelskanaal en komen automatisch terug als ze verwijderd worden' },
