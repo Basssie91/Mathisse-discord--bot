@@ -64,3 +64,6 @@ In `statusChannelId` staat één bericht dat de bot zelf bijwerkt: 🟢 online (
 
 ## Contentmeldingen
 Zoals Pingcord: elke 3 minuten controleert de bot de kanalen uit `/content`. YouTube via de openbare RSS-feed (nieuwe video's), Twitch via decapi.me en Kick via de openbare kick.com-API (live gaan). Optioneel een rol (of @everyone) die getagd wordt.
+
+## Staff-overzicht
+In `staffOverviewChannelId` staat een embed met alle commands en wie ze mag gebruiken. Wordt bij elke start opnieuw opgebouwd uit de geregistreerde commands (zet bij een nieuw command de rechten in `ACCESS` in `src/staffOverview.js`) en teruggezet als het weg is.

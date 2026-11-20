@@ -76,6 +76,9 @@ require('./src/staffUpdate')(client);
 // /commands (overzicht voor iedereen)
 require('./src/help')(client);
 
+// Staff-overzicht van alle commands en rechten
+require('./src/staffOverview')(client);
+
 // Botstatus in het statuskanaal
 const status = require('./src/status');
 status(client);

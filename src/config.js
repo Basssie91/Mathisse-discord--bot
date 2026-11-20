@@ -47,6 +47,9 @@ module.exports = {
   staffUpdateChannelId: '1573382523323420712',
   staffUpdateRoleIds: [],
 
+  // Staff-overzicht van alle commands en wie ze mag gebruiken
+  staffOverviewChannelId: '1516133258503655629',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 
