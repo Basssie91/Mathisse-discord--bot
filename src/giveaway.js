@@ -1,30 +1,51 @@
-// /giveaway: giveaway starten in het giveawaykanaal
+// /giveaway: opent een formulier (prijs, aantal winnaars, duur, uitleg) en start de giveaway in het giveawaykanaal
 // Meedoen met een knop (nog een keer klikken = uitschrijven). Na afloop worden de winnaars willekeurig gekozen.
 // Giveaways worden opgeslagen, dus een herstart van de bot stopt ze niet.
 const {
   Events, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags,
+  ModalBuilder, LabelBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
 const { load, save, newId, ts } = require('./store');
 
 const FILE = 'giveaways.json';
-const UNITS = { m: 60e3, min: 60e3, u: 3600e3, h: 3600e3, d: 86400e3, w: 604800e3 };
-
-// "30m", "2u", "1d", "1w" → milliseconden
-function parseDuration(text) {
-  const m = String(text).trim().toLowerCase().replace(',', '.').match(/^(\d+(?:\.\d+)?)\s*(m|min|u|h|d|w)$/);
-  return m ? Math.round(Number(m[1]) * UNITS[m[2]]) : null;
-}
+const HOUR = 3600e3;
+const DAY = 24 * HOUR;
+// Keuzes voor de duur in het formulier
+const DURATIONS = [
+  ['1 uur', HOUR], ['6 uur', 6 * HOUR], ['12 uur', 12 * HOUR],
+  ['1 dag', DAY], ['2 dagen', 2 * DAY], ['3 dagen', 3 * DAY], ['4 dagen', 4 * DAY], ['5 dagen', 5 * DAY], ['6 dagen', 6 * DAY],
+  ['1 week', 7 * DAY], ['2 weken', 14 * DAY], ['3 weken', 21 * DAY], ['4 weken', 28 * DAY],
+];
 
 const command = new SlashCommandBuilder()
   .setName('giveaway')
-  .setDescription('Een giveaway starten')
-  .addStringOption((o) => o.setName('prijs').setDescription('Wat valt er te winnen?').setMaxLength(200).setRequired(true))
-  .addStringOption((o) => o.setName('duur').setDescription('Hoe lang? Bijv. 30m, 2u, 1d of 1w').setRequired(true))
-  .addIntegerOption((o) => o.setName('winnaars').setDescription('Aantal winnaars (standaard 1)').setMinValue(1).setMaxValue(20))
-  .addStringOption((o) => o.setName('info').setDescription('Extra uitleg (optioneel)').setMaxLength(500))
+  .setDescription('Een giveaway starten (je krijgt een formulier)')
   .setDMPermission(false)
   .toJSON();
+
+// Formulier met prijs, uitleg, aantal winnaars (1-10) en duur
+function giveawayForm() {
+  return new ModalBuilder()
+    .setCustomId('gw_form')
+    .setTitle('🎁 Giveaway starten')
+    .addLabelComponents(
+      new LabelBuilder().setLabel('Prijs').setDescription('Wat valt er te winnen?')
+        .setTextInputComponent(new TextInputBuilder().setCustomId('prijs').setStyle(TextInputStyle.Short)
+          .setPlaceholder('Bijv. Discord Nitro').setMaxLength(200).setRequired(true)),
+      new LabelBuilder().setLabel('Aantal winnaars')
+        .setStringSelectMenuComponent(new StringSelectMenuBuilder().setCustomId('winnaars').setRequired(true)
+          .addOptions(Array.from({ length: 10 }, (_, i) => ({
+            label: `${i + 1} winnaar${i ? 's' : ''}`, value: String(i + 1), emoji: '🏆', default: i === 0,
+          })))),
+      new LabelBuilder().setLabel('Hoe lang duurt de giveaway?')
+        .setStringSelectMenuComponent(new StringSelectMenuBuilder().setCustomId('duur').setRequired(true)
+          .addOptions(DURATIONS.map(([label, ms]) => ({ label, value: String(ms), emoji: '⏰', default: label === '1 dag' })))),
+      new LabelBuilder().setLabel('Extra uitleg').setDescription('Optioneel, bijv. voorwaarden')
+        .setTextInputComponent(new TextInputBuilder().setCustomId('info').setStyle(TextInputStyle.Paragraph)
+          .setPlaceholder('Bijv. Alleen voor actieve leden!').setMaxLength(500).setRequired(false)),
+    );
+}
 
 const allowed = (member) => cfg.adminIds.includes(member.id)
   || member.roles.cache.some((r) => cfg.giveawayRoleIds.includes(r.id));
@@ -111,21 +132,23 @@ async function start(interaction) {
   if (!allowed(interaction.member)) {
     return interaction.reply({ content: '❌ Je hebt geen toestemming om een giveaway te starten.', flags: MessageFlags.Ephemeral });
   }
-  const ms = parseDuration(interaction.options.getString('duur'));
-  if (!ms || ms < 60e3) {
-    return interaction.reply({ content: '❌ Ongeldige duur. Gebruik bijvoorbeeld **30m**, **2u**, **1d** of **1w** (minimaal 1 minuut).', flags: MessageFlags.Ephemeral });
-  }
-  if (ms > 60 * 86400e3) return interaction.reply({ content: '❌ Een giveaway mag maximaal 60 dagen duren.', flags: MessageFlags.Ephemeral });
+  await interaction.showModal(giveawayForm());
+}
 
+async function submitForm(interaction) {
+  if (!allowed(interaction.member)) {
+    return interaction.reply({ content: '❌ Je hebt geen toestemming om een giveaway te starten.', flags: MessageFlags.Ephemeral });
+  }
   const channel = await interaction.client.channels.fetch(cfg.giveawayChannelId).catch(() => null);
   if (!channel) return interaction.reply({ content: '❌ Ik kan het giveawaykanaal niet vinden.', flags: MessageFlags.Ephemeral });
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
+  const ms = Number(interaction.fields.getStringSelectValues('duur')[0]) || DAY;
   const g = {
     id: newId(),
-    prize: interaction.options.getString('prijs'),
-    info: interaction.options.getString('info'),
-    winners: interaction.options.getInteger('winnaars') ?? 1,
+    prize: interaction.fields.getTextInputValue('prijs').trim(),
+    info: interaction.fields.getTextInputValue('info').trim() || null,
+    winners: Number(interaction.fields.getStringSelectValues('winnaars')[0]) || 1,
     hostId: interaction.user.id,
     channelId: channel.id,
     endsAt: Date.now() + ms,
@@ -189,6 +212,7 @@ module.exports = (client) => {
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
       if (interaction.isChatInputCommand() && interaction.commandName === 'giveaway') await start(interaction);
+      else if (interaction.isModalSubmit() && interaction.customId === 'gw_form') await submitForm(interaction);
       else if (interaction.isButton() && interaction.customId.startsWith('gw_')) await onButton(interaction);
     } catch (e) {
       console.error('[giveaway]', e);
