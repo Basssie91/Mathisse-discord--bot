@@ -57,6 +57,9 @@ require('./src/purge')(client);
 // /giveaway
 require('./src/giveaway')(client);
 
+// Woordketting (haalt gemiste woorden in na een herstart)
+require('./src/wordchain')(client);
+
 // Verlengingsherinnering
 renewReminder(client, {
   notifyIds: ['1506618917324460114'], // krijgt de DM-herinnering

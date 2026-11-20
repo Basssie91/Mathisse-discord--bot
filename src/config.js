@@ -30,6 +30,9 @@ module.exports = {
   giveawayChannelId: '1523674964404998294',
   giveawayRoleIds: ['1516133255898730509'],
 
+  // Woordketting
+  wordChainChannelId: '1573464580741533706',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

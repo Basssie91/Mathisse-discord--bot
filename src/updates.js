@@ -39,6 +39,8 @@ const items = [
   { id: 'cmd-changelog', section: '⌨️ Commando\'s', text: 'Nieuw: **/changelog** om updates zoals deze te plaatsen' },
   { id: 'cmd-opruimen', section: '⌨️ Commando\'s', text: 'Nieuw: **/opruimen** om berichten te verwijderen, eventueel alleen van één persoon' },
   { id: 'giveaways', section: '🎁 Giveaways', text: 'Nieuw: **/giveaway**! Doe mee met één klik op **🎉 Meedoen**, de winnaars worden willekeurig gekozen' },
+  { id: 'woordketting', section: '🎮 Spellen', text: 'Nieuw: **woordketting**! Elk woord begint met de laatste letter van het vorige woord' },
+  { id: 'woordketting-inhalen', section: '🎮 Spellen', text: 'Woorden die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
@@ -53,7 +55,7 @@ const nextVersion = () => `v1.${loadState().published.length + 1}`;
 const isAdmin = (user) => cfg.adminIds.includes(user.id);
 
 // Volgorde van de kopjes: eerst serverdingen, commando's en bot als laatste
-const RANK = ['🎁 Giveaways', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
+const RANK = ['🎁 Giveaways', '🎮 Spellen', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
 const rank = (name) => { const i = RANK.indexOf(name); return i === -1 ? RANK.length - 2 : i; };
 
 function buildEmbed(guild, list, title) {
