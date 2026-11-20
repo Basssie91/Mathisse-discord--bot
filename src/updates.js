@@ -27,13 +27,17 @@ const updates = [
   ['Tickets', 'Het ticketpaneel wordt na een herstart automatisch teruggezet als het weg is.'],
   ['Updates', 'Elke update van de bot verschijnt nu automatisch in dit kanaal.'],
   ['Commands', 'Nieuw command /changelog om zelf een update in dit kanaal te plaatsen.'],
+  ['Updates', 'Bovenin elke update staat nu de datum van die dag.'],
 ];
 
 const textOf = ([category, text]) => `(${category}): ${text}`;
 
 // Eén update-embed: "(Categorie): tekst" met de maker eronder
+// Datum van vandaag bovenin, bv. "📅 20 november 2026" (Nederlandse tijd)
+const today = () => `📅 ${new Date().toLocaleDateString('nl-NL', { timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long', year: 'numeric' })}`;
+
 function updateEmbed(text, user) {
-  const embed = new EmbedBuilder().setColor(COLOR).setDescription(text);
+  const embed = new EmbedBuilder().setColor(COLOR).setTitle(today()).setDescription(text);
   if (user) embed.setFooter({ text: user.globalName ?? user.username, iconURL: user.displayAvatarURL({ size: 64 }) });
   return embed;
 }
