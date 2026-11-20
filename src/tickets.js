@@ -164,6 +164,23 @@ async function createTicket(interaction, type) {
   });
   await interaction.editReply(`✅ Je ticket is aangemaakt: ${channel}`);
   console.log(`[tickets] ${user.tag} opende een ${type.label} ticket`);
+  await logTicket(guild, new EmbedBuilder()
+    .setColor('#57F287')
+    .setTitle(`🎫  TICKET GEOPEND • ${channel.name}`)
+    .addFields(
+      { name: '🏷️ Soort', value: `${type.emoji} ${type.label}`, inline: true },
+      { name: '👤 Geopend door', value: `${user}`, inline: true },
+      { name: '📍 Kanaal', value: `${channel}`, inline: true },
+      { name: '📝 Onderwerp', value: reason.slice(0, 1024) },
+    ));
+}
+
+// Ticketlog in het logkanaal (geopend / opgepakt; gesloten staat in doClose met transcript)
+async function logTicket(guild, embed) {
+  const id = settings().transcriptChannelId;
+  if (!id) return;
+  const log = await guild.channels.fetch(id).catch(() => null);
+  await log?.send({ embeds: [embed.setTimestamp()], allowedMentions: { parse: [] } }).catch((e) => console.warn('[tickets] Log mislukt:', e.message));
 }
 
 function ticketInfo(channel) {
@@ -185,6 +202,16 @@ async function claim(interaction) {
     interaction.channel.setName(`✅${interaction.channel.name}`.slice(0, 100), 'Ticket opgepakt').catch(() => {});
   }
   await interaction.channel.send(`🙋 ${interaction.user} heeft dit ticket opgepakt en helpt je verder.`);
+  const opener = ticketInfo(interaction.channel)?.userId;
+  await logTicket(interaction.guild, new EmbedBuilder()
+    .setColor('#FEE75C')
+    .setTitle(`🙋  TICKET OPGEPAKT • ${interaction.channel.name.replace(/^✅/, '')}`)
+    .addFields(
+      { name: '🏷️ Soort', value: `${info.type.emoji} ${info.type.label}`, inline: true },
+      { name: '🙋 Opgepakt door', value: `${interaction.user}`, inline: true },
+      { name: '👤 Van', value: opener ? `<@${opener}>` : 'Onbekend', inline: true },
+      { name: '📍 Kanaal', value: `${interaction.channel}`, inline: true },
+    ));
 }
 
 async function askClose(interaction) {
