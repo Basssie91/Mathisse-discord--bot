@@ -32,6 +32,7 @@ const commands = [
     .toJSON(),
   renewReminder.command,
   require('./src/tickets').command,
+  require('./src/updates').command,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag

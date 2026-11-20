@@ -6,6 +6,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 - `/restart` – herstart de bot. Alleen te gebruiken door de Discord-ID's in `ALLOWED_RESTART_IDS` in `index.js`.
 - `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (voor de gebruikers in `allowedIds` in `index.js`).
 
+- `/changelog` – zelf een update plaatsen in het updatekanaal (formulier met categorie en wijziging; alleen beheerders uit `src/config.js`).
 - `/ticket-setup` – ticketsysteem instellen en het paneel plaatsen (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem

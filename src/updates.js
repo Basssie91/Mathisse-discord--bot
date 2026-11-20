@@ -6,7 +6,10 @@
 //  De bot kijkt in het kanaal zelf wat er al staat, dus niets wordt dubbel geplaatst.
 //  Wijzig of verwijder geen regels die al geplaatst zijn (dan wordt hij opnieuw geplaatst).
 // ============================================================
-const { Events, EmbedBuilder } = require('discord.js');
+const {
+  Events, EmbedBuilder, SlashCommandBuilder, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, MessageFlags,
+} = require('discord.js');
+const cfg = require('./config');
 
 const CHANNEL_ID = '1569359142722867467';
 const AUTHOR_ID = '1057307298894196756'; // Bas: staat onder elke update
@@ -23,9 +26,57 @@ const updates = [
   ['Tickets', 'Bij het sluiten van een ticket krijg je het hele gesprek als transcript in je DM.'],
   ['Tickets', 'Het ticketpaneel wordt na een herstart automatisch teruggezet als het weg is.'],
   ['Updates', 'Elke update van de bot verschijnt nu automatisch in dit kanaal.'],
+  ['Commands', 'Nieuw command /changelog om zelf een update in dit kanaal te plaatsen.'],
 ];
 
 const textOf = ([category, text]) => `(${category}): ${text}`;
+
+// Eén update-embed: "(Categorie): tekst" met de maker eronder
+function updateEmbed(text, user) {
+  const embed = new EmbedBuilder().setColor(COLOR).setDescription(text);
+  if (user) embed.setFooter({ text: user.globalName ?? user.username, iconURL: user.displayAvatarURL({ size: 64 }) });
+  return embed;
+}
+
+// ---------- /changelog: zelf een update schrijven ----------
+const command = new SlashCommandBuilder()
+  .setName('changelog')
+  .setDescription('Zelf een update plaatsen in het updatekanaal')
+  .setDMPermission(false)
+  .toJSON();
+
+async function openForm(interaction) {
+  if (!cfg.adminIds.includes(interaction.user.id)) {
+    return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
+  }
+  await interaction.showModal(new ModalBuilder()
+    .setCustomId('changelog_form')
+    .setTitle('📋 Update plaatsen')
+    .addComponents(
+      new ActionRowBuilder().addComponents(new TextInputBuilder()
+        .setCustomId('categorie').setLabel('Categorie').setStyle(TextInputStyle.Short)
+        .setPlaceholder('Bijv. Tickets, Bot, Commands, Server').setMaxLength(40).setRequired(true)),
+      new ActionRowBuilder().addComponents(new TextInputBuilder()
+        .setCustomId('wijziging').setLabel('Wat is er aangepast?').setStyle(TextInputStyle.Paragraph)
+        .setPlaceholder('Bijv. Het ticketpaneel heeft een nieuwe banner.').setMaxLength(1000).setRequired(true)),
+    ));
+}
+
+async function submitForm(interaction) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  const category = interaction.fields.getTextInputValue('categorie').trim().replace(/^\(|\)$/g, '');
+  let text = interaction.fields.getTextInputValue('wijziging').trim();
+  if (!/[.!?]$/.test(text)) text += '.';
+  const channel = await interaction.client.channels.fetch(CHANNEL_ID).catch(() => null);
+  if (!channel) return interaction.editReply('❌ Ik kan het updatekanaal niet vinden.');
+  try {
+    const msg = await channel.send({ embeds: [updateEmbed(`(${category}): ${text}`, interaction.user)] });
+    await interaction.editReply(`✅ Update geplaatst: ${msg.url}`);
+    console.log(`[updates] ${interaction.user.tag} plaatste: (${category}): ${text}`);
+  } catch (e) {
+    await interaction.editReply(`❌ Kon de update niet plaatsen: ${e.message}`);
+  }
+}
 
 async function postNew(client) {
   try {
@@ -41,9 +92,7 @@ async function postNew(client) {
 
     const author = await client.users.fetch(AUTHOR_ID).catch(() => null);
     for (const u of todo) {
-      const embed = new EmbedBuilder().setColor(COLOR).setDescription(textOf(u));
-      if (author) embed.setFooter({ text: author.globalName ?? author.username, iconURL: author.displayAvatarURL({ size: 64 }) });
-      await channel.send({ embeds: [embed] });
+      await channel.send({ embeds: [updateEmbed(textOf(u), author)] });
       console.log(`[updates] Geplaatst: ${textOf(u)}`);
     }
   } catch (e) {
@@ -53,4 +102,13 @@ async function postNew(client) {
 
 module.exports = (client) => {
   client.once(Events.ClientReady, () => postNew(client));
+  client.on(Events.InteractionCreate, async (interaction) => {
+    try {
+      if (interaction.isChatInputCommand() && interaction.commandName === 'changelog') await openForm(interaction);
+      else if (interaction.isModalSubmit() && interaction.customId === 'changelog_form') await submitForm(interaction);
+    } catch (e) {
+      console.error('[updates]', e);
+    }
+  });
 };
+module.exports.command = command;
