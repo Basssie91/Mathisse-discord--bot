@@ -1,9 +1,18 @@
 // ============================================================
 //  INSTELLINGEN TICKETSYSTEEM
-//  Kanalen en rollen stel je in met /ticket-setup (wordt opgeslagen in data/settings.json).
 // ============================================================
 
 module.exports = {
+  // ---- Kanalen en rollen (rechtermuisknop → ID kopiëren, met Ontwikkelaarsmodus aan) ----
+  // Staan ze hier ingevuld, dan is /ticket-setup niet nodig.
+  panelChannelId: '',      // kanaal waar het ticketpaneel staat
+  staffRoleId: '',         // ziet Vragen-tickets, wordt gegeven bij geaccepteerde sollicitatie
+  bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
+  transcriptChannelId: '', // (optioneel) transcripts van gesloten tickets
+  partnerChannelId: '',    // (optioneel) geaccepteerde partners
+  partnerRoleId: '',       // (optioneel) rol voor partners
+  extraStaffRoleId: '',    // (optioneel) tweede keuze bij accepteren sollicitatie
+
   // Eigenaar: krijgt staff-sollicitaties en partneraanvragen in zijn DM en handelt ze af
   ownerId: '1506618917324460114',
 

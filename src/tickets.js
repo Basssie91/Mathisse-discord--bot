@@ -12,7 +12,13 @@ const BANNER_FILE = 'banner.png';
 const BANNER_PATH = path.join(__dirname, '..', 'assets', BANNER_FILE);
 const PANEL_TITLE = '🎫  SUPPORT TICKETS';
 
-const settings = () => store.load('settings.json', {});
+const SETTING_KEYS = ['panelChannelId', 'staffRoleId', 'bestuurRoleId', 'transcriptChannelId', 'partnerChannelId', 'partnerRoleId', 'extraStaffRoleId'];
+// Instellingen: wat in src/config.js staat gaat voor; anders wat met /ticket-setup is opgeslagen
+function settings() {
+  const s = store.load('settings.json', {});
+  for (const k of SETTING_KEYS) if (cfg[k]) s[k] = cfg[k];
+  return s;
+}
 const typeById = (id) => cfg.types.find((t) => t.id === id);
 
 // Rol-id's die een soort ticket kunnen zien
@@ -118,12 +124,19 @@ async function postPanel(guild) {
     files: [new AttachmentBuilder(BANNER_PATH, { name: BANNER_FILE })],
   };
 
-  // Bestaand paneel van de bot bijwerken i.p.v. een tweede plaatsen
-  const recent = await channel.messages.fetch({ limit: 50 });
-  const old = recent.find((m) => m.author.id === guild.members.me.id && m.embeds[0]?.title === PANEL_TITLE);
-  if (old) { await old.edit({ ...payload, attachments: [] }); return 'bijgewerkt'; }
-  await channel.send(payload);
-  return 'geplaatst';
+  // Bestaand paneel van de bot bijwerken i.p.v. een tweede plaatsen; staat het er niet meer, opnieuw plaatsen
+  const panel = store.load('panel.json', {});
+  let old = panel.messageId && panel.channelId === channel.id
+    ? await channel.messages.fetch(panel.messageId).catch(() => null) : null;
+  if (!old) {
+    const recent = await channel.messages.fetch({ limit: 50 });
+    old = recent.find((m) => m.author.id === guild.members.me.id && m.embeds[0]?.title === PANEL_TITLE) ?? null;
+  }
+  let result = 'bijgewerkt';
+  if (old) await old.edit({ ...payload, attachments: [] });
+  else { old = await channel.send(payload); result = 'opnieuw geplaatst'; }
+  store.save('panel.json', { guildId: guild.id, channelId: channel.id, messageId: old.id });
+  return result;
 }
 
 // ---------- Ticket openen ----------
@@ -306,14 +319,30 @@ async function doClose(interaction) {
   setTimeout(() => channel.delete('Ticket gesloten').catch(() => {}), 3000);
 }
 
+// Zoekt de server via het paneelkanaal en zet het paneel neer
+async function checkPanel(client) {
+  const s = settings();
+  if (!s.panelChannelId) return console.log('[tickets] Geen paneelkanaal: vul panelChannelId in src/config.js in (of gebruik /ticket-setup)');
+  try {
+    const channel = await client.channels.fetch(s.panelChannelId);
+    console.log(`[tickets] Ticketpaneel ${await postPanel(channel.guild)}`);
+  } catch (e) {
+    console.warn('[tickets] Kon paneel niet controleren:', e.message);
+  }
+}
+
 // ---------- Koppelen ----------
 module.exports = (client) => {
   // Bij elke start het paneel bijwerken (als het systeem is ingesteld)
-  client.once(Events.ClientReady, async () => {
-    const s = settings();
-    const guild = s.guildId && client.guilds.cache.get(s.guildId);
-    if (!guild) return console.log('[tickets] Nog niet ingesteld: gebruik /ticket-setup');
-    try { console.log(`[tickets] Ticketpaneel ${await postPanel(guild)}`); } catch (e) { console.warn('[tickets] Kon paneel niet bijwerken:', e.message); }
+  // Bij elke start: controleren of het paneel er nog staat (anders opnieuw plaatsen)
+  client.once(Events.ClientReady, () => checkPanel(client));
+
+  // Paneel verwijderd? Meteen opnieuw plaatsen
+  client.on(Events.MessageDelete, (message) => {
+    if (message.id === store.load('panel.json', {}).messageId) {
+      console.log('[tickets] Ticketpaneel is verwijderd, ik plaats het opnieuw');
+      setTimeout(() => checkPanel(client), 2000);
+    }
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {
