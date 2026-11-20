@@ -36,6 +36,7 @@ const commands = [
   require('./src/purge').command,
   require('./src/giveaway').command,
   require('./src/content').command,
+  require('./src/content').listCommand,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag

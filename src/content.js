@@ -1,12 +1,13 @@
 // Contentmeldingen (zoals Pingcord): nieuwe YouTube-video's en livestreams op Twitch en Kick.
-// /content toevoegen <link> [ping]  •  /content verwijderen  •  /content lijst
+// /content opent een formulier (link + wie taggen)  •  /content-lijst: overzicht en verwijderen
 // Werkt zonder API-sleutels:
 //  - YouTube: openbare RSS-feed van het kanaal
 //  - Twitch: decapi.me (uptime / titel / game)
 //  - Kick:   openbare kanaal-API van kick.com (kan soms geblokkeerd worden)
 const {
   Events, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
-  StringSelectMenuBuilder, MessageFlags,
+  StringSelectMenuBuilder, MessageFlags, ModalBuilder, LabelBuilder, TextInputBuilder, TextInputStyle,
+  RoleSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
 const { load, save, newId } = require('./store');
@@ -179,70 +180,89 @@ async function checkAll(client) {
   }
 }
 
-// ---------- /content ----------
+// ---------- /content (formulier) en /content-lijst ----------
 const command = new SlashCommandBuilder()
   .setName('content')
-  .setDescription('Contentmeldingen beheren (YouTube, Twitch, Kick)')
-  .addSubcommand((s) => s.setName('toevoegen').setDescription('Een streamer of YouTuber toevoegen')
-    .addStringOption((o) => o.setName('link').setDescription('Link naar het kanaal, bijv. youtube.com/@naam of twitch.tv/naam').setRequired(true))
-    .addRoleOption((o) => o.setName('ping').setDescription('Welke rol wordt getagd bij een melding (optioneel, @everyone kan ook)')))
-  .addSubcommand((s) => s.setName('verwijderen').setDescription('Een streamer of YouTuber verwijderen'))
-  .addSubcommand((s) => s.setName('lijst').setDescription('Alle streamers en YouTubers bekijken'))
+  .setDescription('Een YouTuber of streamer toevoegen (je krijgt een formulier)')
+  .setDMPermission(false)
+  .toJSON();
+const listCommand = new SlashCommandBuilder()
+  .setName('content-lijst')
+  .setDescription('Alle YouTubers en streamers bekijken en verwijderen')
   .setDMPermission(false)
   .toJSON();
 
-const line = (s) => `${PLATFORM[s.platform].emoji} **${s.name}** • [${PLATFORM[s.platform].label}](${s.url})${s.pingRoleId ? ` • ping ${s.pingRoleId === cfg.guildIdHint ? '@everyone' : `<@&${s.pingRoleId}>`}` : ''}`;
+let everyoneId = null; // id van @everyone (= server-id), voor de weergave
+const pingText = (s) => (s.pingRoleId ? (s.pingRoleId === everyoneId ? '@everyone' : `<@&${s.pingRoleId}>`) : 'niemand');
+const line = (s) => `${PLATFORM[s.platform].emoji} **${s.name}** • [${PLATFORM[s.platform].label}](${s.url}) • tag: ${pingText(s)}`;
 
-async function onCommand(interaction) {
-  if (!isAdmin(interaction.user)) {
-    return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
-  }
-  const sub = interaction.options.getSubcommand();
+function contentForm() {
+  return new ModalBuilder()
+    .setCustomId('content_form')
+    .setTitle('📡 Content toevoegen')
+    .addLabelComponents(
+      new LabelBuilder().setLabel('Link naar het kanaal').setDescription('YouTube, Twitch of Kick')
+        .setTextInputComponent(new TextInputBuilder().setCustomId('link').setStyle(TextInputStyle.Short)
+          .setPlaceholder('Bijv. youtube.com/@naam of twitch.tv/naam').setMaxLength(200).setRequired(true)),
+      new LabelBuilder().setLabel('Wie wordt er getagd bij een melding?')
+        .setStringSelectMenuComponent(new StringSelectMenuBuilder().setCustomId('tag').setRequired(true).addOptions(
+          { label: 'Niemand', value: 'none', emoji: '🔕', default: true },
+          { label: '@everyone', value: 'everyone', emoji: '📢' },
+          { label: 'Een rol (kies hieronder)', value: 'role', emoji: '🏷️' },
+        )),
+      new LabelBuilder().setLabel('Rol').setDescription('Alleen als je hierboven "Een rol" kiest')
+        .setRoleSelectMenuComponent(new RoleSelectMenuBuilder().setCustomId('rol').setRequired(false).setMaxValues(1)),
+    );
+}
 
-  if (sub === 'toevoegen') {
-    const link = parseLink(interaction.options.getString('link').trim());
-    if (!link) return interaction.reply({ content: '❌ Dat is geen YouTube-, Twitch- of Kick-link.', flags: MessageFlags.Ephemeral });
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    let s;
-    try {
-      s = link.platform === 'youtube' ? await resolveYoutube(link) : link.platform === 'twitch' ? await resolveTwitch(link) : await resolveKick(link);
-    } catch (e) {
-      return interaction.editReply(`❌ Kon het kanaal niet toevoegen: ${e.message}`);
-    }
-    const l = list();
-    if (l.some((x) => x.platform === s.platform && (x.channelId ?? x.handle) === (s.channelId ?? s.handle))) {
-      return interaction.editReply(`ℹ️ **${s.name}** staat er al in.`);
-    }
-    s.id = newId();
-    s.pingRoleId = interaction.options.getRole('ping')?.id ?? null;
-    l.push(s);
-    store(l);
-    console.log(`[content] ${interaction.user.tag} voegde ${s.name} (${s.platform}) toe`);
-    return interaction.editReply(`✅ ${line(s)} is toegevoegd!\nMeldingen komen in <#${cfg.contentChannelId}>. ${s.platform === 'youtube' ? 'Bij een nieuwe video' : 'Zodra de stream live gaat'} komt er een melding.`);
-  }
-
+function overview() {
   const l = list();
-  if (!l.length) return interaction.reply({ content: '📭 Er zijn nog geen streamers of YouTubers. Voeg er een toe met `/content toevoegen`.', flags: MessageFlags.Ephemeral });
+  if (!l.length) return { content: '📭 Er zijn nog geen YouTubers of streamers. Voeg er een toe met `/content`.', embeds: [], components: [] };
+  return {
+    content: '',
+    embeds: [new EmbedBuilder().setColor(cfg.color).setTitle(`📡  Contentmeldingen (${l.length})`)
+      .setDescription(l.map(line).join('\n').slice(0, 4000))
+      .setFooter({ text: 'Elke 3 minuten gecontroleerd • Kies hieronder iemand om te verwijderen' })],
+    components: [new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
+      .setCustomId('content_remove').setPlaceholder('🗑️ Iemand verwijderen...')
+      .addOptions(l.slice(0, 25).map((s) => ({ label: s.name.slice(0, 100), description: PLATFORM[s.platform].label, value: s.id, emoji: PLATFORM[s.platform].emoji }))))],
+    allowedMentions: { parse: [] },
+  };
+}
 
-  if (sub === 'lijst') {
-    return interaction.reply({
-      embeds: [new EmbedBuilder().setColor(cfg.color).setTitle(`📡  Contentmeldingen (${l.length})`)
-        .setDescription(l.map(line).join('\n').slice(0, 4000))
-        .setFooter({ text: 'Elke 3 minuten gecontroleerd' })],
-      flags: MessageFlags.Ephemeral,
-      allowedMentions: { parse: [] },
-    });
+async function onSubmit(interaction) {
+  if (!isAdmin(interaction.user)) return interaction.reply({ content: '❌ Geen toestemming.', flags: MessageFlags.Ephemeral });
+  const link = parseLink(interaction.fields.getTextInputValue('link').trim());
+  if (!link) return interaction.reply({ content: '❌ Dat is geen YouTube-, Twitch- of Kick-link.', flags: MessageFlags.Ephemeral });
+
+  const tag = interaction.fields.getStringSelectValues('tag')[0] ?? 'none';
+  let pingRoleId = null;
+  if (tag === 'everyone') pingRoleId = interaction.guild.id;
+  if (tag === 'role') {
+    try { pingRoleId = interaction.fields.getSelectedRoles('rol')?.first()?.id ?? null; } catch { pingRoleId = null; }
+    if (!pingRoleId) return interaction.reply({ content: '❌ Je koos "Een rol", maar hebt geen rol gekozen. Probeer het opnieuw.', flags: MessageFlags.Ephemeral });
   }
 
-  if (sub === 'verwijderen') {
-    return interaction.reply({
-      content: 'Wie wil je verwijderen?',
-      components: [new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
-        .setCustomId('content_remove').setPlaceholder('Kies een streamer of YouTuber...')
-        .addOptions(l.slice(0, 25).map((s) => ({ label: s.name.slice(0, 100), description: PLATFORM[s.platform].label, value: s.id, emoji: PLATFORM[s.platform].emoji }))))],
-      flags: MessageFlags.Ephemeral,
-    });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  let s;
+  try {
+    s = link.platform === 'youtube' ? await resolveYoutube(link) : link.platform === 'twitch' ? await resolveTwitch(link) : await resolveKick(link);
+  } catch (e) {
+    return interaction.editReply(`❌ Kon het kanaal niet toevoegen: ${e.message}`);
   }
+  const l = list();
+  if (l.some((x) => x.platform === s.platform && (x.channelId ?? x.handle) === (s.channelId ?? s.handle))) {
+    return interaction.editReply(`ℹ️ **${s.name}** staat er al in.`);
+  }
+  s.id = newId();
+  s.pingRoleId = pingRoleId;
+  l.push(s);
+  store(l);
+  console.log(`[content] ${interaction.user.tag} voegde ${s.name} (${s.platform}) toe`);
+  return interaction.editReply({
+    content: `✅ ${line(s)} is toegevoegd!\n${s.platform === 'youtube' ? 'Bij een nieuwe video' : 'Zodra de stream live gaat'} komt er een melding in <#${cfg.contentChannelId}>.`,
+    allowedMentions: { parse: [] },
+  });
 }
 
 async function onRemove(interaction) {
@@ -250,19 +270,27 @@ async function onRemove(interaction) {
   const l = list();
   const s = l.find((x) => x.id === interaction.values[0]);
   store(l.filter((x) => x.id !== interaction.values[0]));
-  return interaction.update({ content: s ? `🗑️ **${s.name}** is verwijderd.` : 'Al verwijderd.', components: [] });
+  const o = overview();
+  return interaction.update({ ...o, content: `${s ? `🗑️ **${s.name}** is verwijderd.` : 'Al verwijderd.'}\n${o.content}`.trim() });
 }
 
 module.exports = (client) => {
-  client.once(Events.ClientReady, (c) => {
-    cfg.guildIdHint = c.channels.cache.get(cfg.contentChannelId)?.guild?.id;
+  client.once(Events.ClientReady, () => {
+    everyoneId = client.channels.cache.get(cfg.contentChannelId)?.guild?.id ?? null;
     setTimeout(() => checkAll(client), 15000);
     setInterval(() => checkAll(client), CHECK_EVERY).unref();
   });
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
-      if (interaction.isChatInputCommand() && interaction.commandName === 'content') await onCommand(interaction);
-      else if (interaction.isStringSelectMenu() && interaction.customId === 'content_remove') await onRemove(interaction);
+      if (interaction.isChatInputCommand() && ['content', 'content-lijst'].includes(interaction.commandName)) {
+        if (!isAdmin(interaction.user)) {
+          return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
+        }
+        if (interaction.commandName === 'content') return interaction.showModal(contentForm());
+        return interaction.reply({ ...overview(), flags: MessageFlags.Ephemeral });
+      }
+      if (interaction.isModalSubmit() && interaction.customId === 'content_form') return onSubmit(interaction);
+      if (interaction.isStringSelectMenu() && interaction.customId === 'content_remove') return onRemove(interaction);
     } catch (e) {
       console.error('[content]', e);
       const m = { content: '❌ Er ging iets mis.', flags: MessageFlags.Ephemeral };
@@ -272,4 +300,5 @@ module.exports = (client) => {
   });
 };
 module.exports.command = command;
+module.exports.listCommand = listCommand;
 module.exports._test = { parseLink, youtubeFeed };

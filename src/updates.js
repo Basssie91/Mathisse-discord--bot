@@ -45,7 +45,7 @@ const items = [
   { id: 'tellen-inhalen', section: '🎮 Spellen', text: 'Getallen die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
   { id: 'botstatus', section: '⚙️ Bot', text: 'Nieuw **statuskanaal**: zie of de bot 🟢 online, 🔄 aan het herstarten of 🔴 offline is, met de geschiedenis van storingen' },
   { id: 'content', section: '📡 Content', text: 'Nieuw: **contentmeldingen**! Een melding bij een nieuwe YouTube-video of als een streamer live gaat op Twitch of Kick' },
-  { id: 'cmd-content', section: '⌨️ Commando\'s', text: 'Nieuw: **/content** om streamers en YouTubers toe te voegen met hun link' },
+  { id: 'cmd-content', section: '⌨️ Commando\'s', text: 'Nieuw: **/content** opent een formulier om streamers en YouTubers toe te voegen, **/content-lijst** laat ze allemaal zien' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
