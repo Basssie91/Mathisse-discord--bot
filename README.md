@@ -13,8 +13,8 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 Paneel met een uitklapmenu:
 - ❓ **Vragen** → privé ticketkanaal (staffrol + bestuurrol)
 - 👑 **Bestuur** → privé ticketkanaal (alleen bestuurrol)
-- 🛡️ **Staff sollicitatie** → formulier, komt binnen in de DM van de eigenaar (accepteren = rol geven, afwijzen = reden + 7 dagen wachttijd)
-- 🤝 **Partner aanvraag** → formulier met controle van de invite, komt binnen in de DM van de eigenaar (accepteren = plaatsen in partnerkanaal + partnerrol)
+- 🛡️ **Staff sollicitatie** → formulier, komt binnen in het sollicitatiekanaal (accepteren = zelf een rol kiezen, afwijzen = reden + 7 dagen wachttijd)
+- 🤝 **Partner aanvraag** → formulier met controle van de invite, komt binnen in het aanvraagkanaal (accepteren = plaatsen in partnerkanaal + partnerrol)
 
 Tickets hebben **🙋 Oppakken** en **🔒 Sluiten** (met verplichte reden). Bij sluiten komt er een HTML-transcript in het transcriptkanaal en in de DM van de maker.
 Alle instellingen (kanalen, rollen, eigenaar, vragen van de sollicitatie) staan in `src/config.js`. Bij elke start controleert de bot of het paneel er nog staat en plaatst het anders opnieuw; wordt het paneel verwijderd, dan zet de bot het meteen terug. `/ticket-setup` is alleen nog nodig als je de ID's niet in `src/config.js` wilt zetten.

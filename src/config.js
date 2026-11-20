@@ -6,14 +6,13 @@ module.exports = {
   // ---- Kanalen en rollen (rechtermuisknop → ID kopiëren, met Ontwikkelaarsmodus aan) ----
   // Staan ze hier ingevuld, dan is /ticket-setup niet nodig.
   panelChannelId: '1516461284374216774', // kanaal waar het ticketpaneel staat
-  staffRoleId: '',         // ziet Vragen-tickets, wordt gegeven bij geaccepteerde sollicitatie
+  staffRoleId: '',         // ziet Vragen-tickets
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
   transcriptChannelId: '', // (optioneel) transcripts van gesloten tickets
   partnerChannelId: '1571121191614283919', // (optioneel) geaccepteerde partners
   partnerRequestChannelId: '1573456737401311302', // nieuwe partneraanvragen (afhandelen: adminIds)
   applicationChannelId: '1573457687113637978', // nieuwe staff-sollicitaties (afhandelen: adminIds)
   partnerRoleId: '',       // (optioneel) rol voor partners
-  extraStaffRoleId: '',    // (optioneel) tweede keuze bij accepteren sollicitatie
 
   // Eigenaar: krijgt staff-sollicitaties en partneraanvragen in zijn DM en handelt ze af
   ownerId: '1506618917324460114',

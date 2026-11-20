@@ -1,11 +1,10 @@
 // Staff-sollicitaties: formulier via het ticketmenu, afhandelen in het sollicitatiekanaal (alleen adminIds)
 const {
   Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags,
-  ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder,
+  ModalBuilder, TextInputBuilder, TextInputStyle, RoleSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
 const { load, save, newId, ts } = require('./store');
-const { settings } = require('./tickets');
 
 const FILE = 'applications.json';
 const DAY = 24 * 60 * 60 * 1000;
@@ -76,11 +75,6 @@ async function submit(interaction) {
 }
 
 // ---------- Afhandelen (alleen Bas en Mathisse) ----------
-function givableRoles(guild) {
-  const s = settings();
-  return [s.staffRoleId, s.extraStaffRoleId].filter(Boolean)
-    .map((rid) => guild.roles.cache.get(rid)).filter(Boolean);
-}
 
 async function markDone(interaction, app, accepted, extra) {
   // In een DM is het kanaal soms niet in de cache: dan de DM zelf openen
@@ -99,29 +93,30 @@ async function markDone(interaction, app, accepted, extra) {
 async function onAccept(interaction, id) {
   const app = load(FILE, {})[id];
   if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.', flags: MessageFlags.Ephemeral });
-  const guild = interaction.client.guilds.cache.get(app.guildId);
-  const roles = guild ? givableRoles(guild) : [];
-  if (!roles.length) return interaction.reply({ content: '❌ Er is geen staffrol ingesteld. Vul staffRoleId in src/config.js in.', flags: MessageFlags.Ephemeral });
-  if (roles.length === 1) return giveRole(interaction, id, roles[0].id);
+  // Zelf een rol kiezen uit de rollen van de server
   await interaction.reply({
     content: `Welke rol geef je aan <@${app.userId}>?`,
     components: [new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder().setCustomId(`app_role:${id}`).setPlaceholder('Kies een rol...')
-        .addOptions(roles.map((r) => ({ label: r.name.slice(0, 100), value: r.id }))),
+      new RoleSelectMenuBuilder().setCustomId(`app_role:${id}`).setPlaceholder('Kies een rol...'),
     )],
     flags: MessageFlags.Ephemeral,
+    allowedMentions: { parse: [] },
   });
 }
 
 async function giveRole(interaction, id, roleId) {
   const d = load(FILE, {});
   const app = d[id];
-  const done = (content) => (interaction.isStringSelectMenu() ? interaction.update({ content, components: [] }) : interaction.reply({ content, flags: MessageFlags.Ephemeral }));
+  const done = (content) => (interaction.isRoleSelectMenu() ? interaction.update({ content, components: [] }) : interaction.reply({ content, flags: MessageFlags.Ephemeral }));
   if (!app || app.status !== 'pending') return done('Deze sollicitatie is al afgehandeld.');
   const guild = interaction.client.guilds.cache.get(app.guildId);
   const role = guild?.roles.cache.get(roleId);
   const member = guild ? await guild.members.fetch(app.userId).catch(() => null) : null;
   if (!role) return done('❌ Die rol bestaat niet meer.');
+  if (role.managed || role.id === guild.id) return done('❌ Die rol kan niet gegeven worden. Kies een andere rol.');
+  if (role.position >= guild.members.me.roles.highest.position) {
+    return done(`❌ **${role.name}** staat hoger dan of gelijk aan de rol van de bot. Zet de rol van de bot hoger en probeer het opnieuw.`);
+  }
   if (!member) return done('❌ Deze persoon zit niet meer in de server.');
   try {
     await member.roles.add(role, 'Staff-sollicitatie geaccepteerd');
@@ -193,7 +188,7 @@ module.exports = (client) => {
       const appId = id.split(':')[1];
       if (interaction.isButton() && id.startsWith('app_accept:')) return onAccept(interaction, appId);
       if (interaction.isButton() && id.startsWith('app_deny:')) return onDeny(interaction, appId);
-      if (interaction.isStringSelectMenu() && id.startsWith('app_role:')) return giveRole(interaction, appId, interaction.values[0]);
+      if (interaction.isRoleSelectMenu() && id.startsWith('app_role:')) return giveRole(interaction, appId, interaction.values[0]);
       if (interaction.isModalSubmit() && id.startsWith('app_denyform:')) return onDenySubmit(interaction, appId);
     } catch (e) {
       console.error('[sollicitatie]', e);

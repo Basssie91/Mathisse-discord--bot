@@ -12,7 +12,7 @@ const BANNER_FILE = 'banner.png';
 const BANNER_PATH = path.join(__dirname, '..', 'assets', BANNER_FILE);
 const PANEL_TITLE = '🎫  SUPPORT TICKETS';
 
-const SETTING_KEYS = ['panelChannelId', 'staffRoleId', 'bestuurRoleId', 'transcriptChannelId', 'partnerChannelId', 'partnerRoleId', 'extraStaffRoleId'];
+const SETTING_KEYS = ['panelChannelId', 'staffRoleId', 'bestuurRoleId', 'transcriptChannelId', 'partnerChannelId', 'partnerRoleId'];
 // Instellingen: wat in src/config.js staat gaat voor; anders wat met /ticket-setup is opgeslagen
 function settings() {
   const s = store.load('settings.json', {});
@@ -34,12 +34,11 @@ const command = new SlashCommandBuilder()
   .setName('ticket-setup')
   .setDescription('Ticketsysteem instellen en het ticketpaneel plaatsen')
   .addChannelOption((o) => o.setName('kanaal').setDescription('Kanaal waar het ticketpaneel komt').addChannelTypes(CT.GuildText).setRequired(true))
-  .addRoleOption((o) => o.setName('staffrol').setDescription('Ziet Vragen-tickets en wordt gegeven bij een geaccepteerde sollicitatie').setRequired(true))
+  .addRoleOption((o) => o.setName('staffrol').setDescription('Ziet Vragen-tickets').setRequired(true))
   .addRoleOption((o) => o.setName('bestuurrol').setDescription('Ziet Vragen- en Bestuur-tickets').setRequired(true))
   .addChannelOption((o) => o.setName('transcriptkanaal').setDescription('Hier komen transcripts van gesloten tickets').addChannelTypes(CT.GuildText))
   .addChannelOption((o) => o.setName('partnerkanaal').setDescription('Hier komen geaccepteerde partners').addChannelTypes(CT.GuildText))
   .addRoleOption((o) => o.setName('partnerrol').setDescription('Rol voor geaccepteerde partners'))
-  .addRoleOption((o) => o.setName('extra_staffrol').setDescription('Tweede rol om te kiezen bij accepteren sollicitatie (bv. Admin)'))
   .setDMPermission(false)
   .toJSON();
 
@@ -58,7 +57,6 @@ async function setup(interaction) {
     transcriptChannelId: o.getChannel('transcriptkanaal')?.id ?? old.transcriptChannelId ?? null,
     partnerChannelId: o.getChannel('partnerkanaal')?.id ?? old.partnerChannelId ?? null,
     partnerRoleId: o.getRole('partnerrol')?.id ?? old.partnerRoleId ?? null,
-    extraStaffRoleId: o.getRole('extra_staffrol')?.id ?? old.extraStaffRoleId ?? null,
   };
   store.save('settings.json', s);
   try {

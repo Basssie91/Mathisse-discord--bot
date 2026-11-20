@@ -32,6 +32,7 @@ const updates = [
   ['Partners', 'Geaccepteerde partners worden nu automatisch in het partnerkanaal geplaatst.'],
   ['Partners', 'Nieuwe partneraanvragen komen nu in een eigen kanaal en kunnen door de beheerders worden afgehandeld.'],
   ['Tickets', 'Staff sollicitaties komen nu in een eigen kanaal en kunnen door de beheerders worden afgehandeld.'],
+  ['Tickets', 'Bij het accepteren van een sollicitatie kies je nu zelf welke rol iemand krijgt.'],
 ];
 
 const textOf = ([category, text]) => `(${category}): ${text}`;
