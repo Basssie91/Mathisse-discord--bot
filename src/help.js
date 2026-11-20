@@ -1,5 +1,5 @@
 // /commands: overzicht van wat je in de server kunt doen.
-// Iedereen ziet de algemene dingen; wie meer mag, ziet ook de commands voor team/beheer.
+// Alleen de dingen voor leden; commands voor team en beheer staan er bewust niet in.
 const { Events, SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const cfg = require('./config');
 
@@ -10,7 +10,6 @@ const command = new SlashCommandBuilder()
   .toJSON();
 
 const ch = (id) => (id ? `<#${id}>` : null);
-const hasRole = (member, ids = []) => member.roles.cache.some((r) => ids.includes(r.id));
 
 // Klikbare commandlink (</naam:id>), anders gewone tekst
 function cmd(client, name) {
@@ -19,11 +18,7 @@ function cmd(client, name) {
 }
 
 function build(interaction) {
-  const { member, client, guild } = interaction;
-  const isAdmin = cfg.adminIds.includes(member.id);
-  const canPurge = isAdmin || cfg.purgeUserIds.includes(member.id) || hasRole(member, cfg.purgeRoleIds);
-  const canGiveaway = isAdmin || hasRole(member, cfg.giveawayRoleIds);
-  const canStaffUpdate = isAdmin || hasRole(member, cfg.staffUpdateRoleIds);
+  const { client, guild } = interaction;
 
   const embed = new EmbedBuilder()
     .setColor(cfg.color)
@@ -55,27 +50,8 @@ function build(interaction) {
       },
       ...(ch(cfg.rulesChannelId) ? [{ name: '📜 Regels', value: `Lees de regels in ${ch(cfg.rulesChannelId)}` }] : []),
     )
-    .setFooter({ text: 'Je ziet alleen de commands die jij kunt gebruiken' });
+    .setFooter({ text: `Veel plezier in ${guild.name}!` });
 
-  const team = [
-    canPurge && `${cmd(client, 'opruimen')} • Berichten verwijderen`,
-    canGiveaway && `${cmd(client, 'giveaway')} • Een giveaway starten`,
-    canStaffUpdate && `${cmd(client, 'staff-update')} • Aanname, promotie, degradatie of ontslag plaatsen`,
-  ].filter(Boolean);
-  if (team.length) embed.addFields({ name: '🛡️ Voor het team', value: team.join('\n') });
-
-  if (isAdmin) {
-    embed.addFields({
-      name: '👑 Voor beheerders',
-      value: [
-        `${cmd(client, 'changelog')} • Changelog bekijken en publiceren`,
-        `${cmd(client, 'content')} • YouTuber of streamer toevoegen`,
-        `${cmd(client, 'content-lijst')} • Contentmeldingen bekijken en verwijderen`,
-        `${cmd(client, 'verlengen')} • Status van de verlenging bij Bot-Hosting`,
-        `${cmd(client, 'restart')} • De bot herstarten`,
-      ].join('\n'),
-    });
-  }
   return embed;
 }
 

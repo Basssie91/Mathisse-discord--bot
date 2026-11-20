@@ -3,7 +3,7 @@
 Discord-bot (discord.js v14) gehost op Bot-Hosting.
 
 ## Commands
-- `/commands` – voor iedereen: overzicht van alle commands en functies (je ziet alleen wat je zelf mag gebruiken).
+- `/commands` – voor iedereen: overzicht van de commands en functies voor leden (team- en beheercommands staan er niet in).
 - `/restart` – herstart de bot. Alleen te gebruiken door de Discord-ID's in `ALLOWED_RESTART_IDS` in `index.js`.
 - `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (voor de gebruikers in `allowedIds` in `index.js`).
 
