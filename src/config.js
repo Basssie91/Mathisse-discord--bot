@@ -4,7 +4,6 @@
 
 module.exports = {
   // ---- Kanalen en rollen (rechtermuisknop → ID kopiëren, met Ontwikkelaarsmodus aan) ----
-  // Staan ze hier ingevuld, dan is /ticket-setup niet nodig.
   panelChannelId: '1516461284374216774', // kanaal waar het ticketpaneel staat
   staffRoleId: '',         // ziet Vragen-tickets
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
@@ -17,7 +16,7 @@ module.exports = {
   // Eigenaar: krijgt staff-sollicitaties en partneraanvragen in zijn DM en handelt ze af
   ownerId: '1506618917324460114',
 
-  // Mogen /ticket-setup gebruiken
+  // Beheerders: mogen /changelog gebruiken en sollicitaties/partneraanvragen afhandelen
   adminIds: ['1057307298894196756', '1506618917324460114'],
 
   color: '#F0C14B', // goud, past bij het logo
@@ -27,7 +26,7 @@ module.exports = {
   cooldownDays: 7,
 
   // Keuzes in het ticketmenu.
-  // team: welke rollen uit /ticket-setup het ticket kunnen zien ('staff' en/of 'bestuur')
+  // team: welke rollen het ticket kunnen zien ('staff' = staffRoleId, 'bestuur' = bestuurRoleId)
   types: [
   // categoryId: categorie waar de tickets van deze soort in komen
     { id: 'vragen', label: 'Vragen', emoji: '❓', description: 'Heb je een vraag? Wij helpen je graag.', team: ['staff', 'bestuur'], categoryId: '1543971187560808570' },

@@ -31,7 +31,6 @@ const commands = [
     .setDescription('Herstart de bot (alleen voor beheerders van de bot)')
     .toJSON(),
   renewReminder.command,
-  require('./src/tickets').command,
   require('./src/updates').command,
 ];
 

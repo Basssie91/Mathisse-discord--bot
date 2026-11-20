@@ -7,7 +7,6 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 - `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (voor de gebruikers in `allowedIds` in `index.js`).
 
 - `/changelog` – zelf een update plaatsen in het updatekanaal (formulier met categorie en wijziging; alleen beheerders uit `src/config.js`).
-- `/ticket-setup` – ticketsysteem instellen en het paneel plaatsen (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem
 Paneel met een uitklapmenu:
@@ -17,7 +16,7 @@ Paneel met een uitklapmenu:
 - 🤝 **Partner aanvraag** → formulier met controle van de invite, komt binnen in het aanvraagkanaal (accepteren = plaatsen in partnerkanaal + partnerrol)
 
 Tickets hebben **🙋 Oppakken** en **🔒 Sluiten** (met verplichte reden). Bij sluiten komt er een HTML-transcript in het transcriptkanaal en in de DM van de maker.
-Alle instellingen (kanalen, rollen, eigenaar, vragen van de sollicitatie) staan in `src/config.js`. Bij elke start controleert de bot of het paneel er nog staat en plaatst het anders opnieuw; wordt het paneel verwijderd, dan zet de bot het meteen terug. `/ticket-setup` is alleen nog nodig als je de ID's niet in `src/config.js` wilt zetten.
+Alle instellingen (kanalen, rollen, eigenaar, vragen van de sollicitatie) staan in `src/config.js`. Bij elke start controleert de bot of het paneel er nog staat en plaatst het anders opnieuw; wordt het paneel verwijderd, dan zet de bot het meteen terug.
 
 **Let op:** zet in de Discord Developer Portal → Bot de **Message Content Intent** aan, anders start de bot niet.
 

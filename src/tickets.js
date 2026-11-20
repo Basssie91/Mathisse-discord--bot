@@ -2,7 +2,6 @@ const path = require('node:path');
 const {
   Events, ChannelType, PermissionFlagsBits: P, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, AttachmentBuilder, StringSelectMenuBuilder,
-  SlashCommandBuilder, ChannelType: CT,
 } = require('discord.js');
 const cfg = require('./config');
 const store = require('./store');
@@ -12,13 +11,8 @@ const BANNER_FILE = 'banner.png';
 const BANNER_PATH = path.join(__dirname, '..', 'assets', BANNER_FILE);
 const PANEL_TITLE = '🎫  SUPPORT TICKETS';
 
-const SETTING_KEYS = ['panelChannelId', 'staffRoleId', 'bestuurRoleId', 'transcriptChannelId', 'partnerChannelId', 'partnerRoleId'];
-// Instellingen: wat in src/config.js staat gaat voor; anders wat met /ticket-setup is opgeslagen
-function settings() {
-  const s = store.load('settings.json', {});
-  for (const k of SETTING_KEYS) if (cfg[k]) s[k] = cfg[k];
-  return s;
-}
+// Instellingen staan in src/config.js
+const settings = () => cfg;
 const typeById = (id) => cfg.types.find((t) => t.id === id);
 
 // Rol-id's die een soort ticket kunnen zien
@@ -28,45 +22,6 @@ function teamRoles(type) {
 }
 const isTeam = (member, type) => member.permissions.has(P.Administrator)
   || member.roles.cache.some((r) => teamRoles(type).includes(r.id));
-
-// ---------- /ticket-setup ----------
-const command = new SlashCommandBuilder()
-  .setName('ticket-setup')
-  .setDescription('Ticketsysteem instellen en het ticketpaneel plaatsen')
-  .addChannelOption((o) => o.setName('kanaal').setDescription('Kanaal waar het ticketpaneel komt').addChannelTypes(CT.GuildText).setRequired(true))
-  .addRoleOption((o) => o.setName('staffrol').setDescription('Ziet Vragen-tickets').setRequired(true))
-  .addRoleOption((o) => o.setName('bestuurrol').setDescription('Ziet Vragen- en Bestuur-tickets').setRequired(true))
-  .addChannelOption((o) => o.setName('transcriptkanaal').setDescription('Hier komen transcripts van gesloten tickets').addChannelTypes(CT.GuildText))
-  .addChannelOption((o) => o.setName('partnerkanaal').setDescription('Hier komen geaccepteerde partners').addChannelTypes(CT.GuildText))
-  .addRoleOption((o) => o.setName('partnerrol').setDescription('Rol voor geaccepteerde partners'))
-  .setDMPermission(false)
-  .toJSON();
-
-async function setup(interaction) {
-  if (!cfg.adminIds.includes(interaction.user.id)) {
-    return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
-  }
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const o = interaction.options;
-  const old = settings();
-  const s = {
-    guildId: interaction.guildId,
-    panelChannelId: o.getChannel('kanaal').id,
-    staffRoleId: o.getRole('staffrol').id,
-    bestuurRoleId: o.getRole('bestuurrol').id,
-    transcriptChannelId: o.getChannel('transcriptkanaal')?.id ?? old.transcriptChannelId ?? null,
-    partnerChannelId: o.getChannel('partnerkanaal')?.id ?? old.partnerChannelId ?? null,
-    partnerRoleId: o.getRole('partnerrol')?.id ?? old.partnerRoleId ?? null,
-  };
-  store.save('settings.json', s);
-  try {
-    const result = await postPanel(interaction.guild);
-    await interaction.editReply(`✅ Ticketsysteem ingesteld. Paneel ${result} in <#${s.panelChannelId}>.${s.partnerChannelId ? '' : '\n⚠️ Geen partnerkanaal ingesteld: geaccepteerde partners worden nergens geplaatst.'}`);
-  } catch (e) {
-    console.error('[tickets] Paneel plaatsen mislukt:', e);
-    await interaction.editReply(`❌ Instellingen opgeslagen, maar het paneel plaatsen lukte niet: ${e.message}\nHeeft de bot rechten in dat kanaal?`);
-  }
-}
 
 // ---------- Categorie ----------
 // Eigen categorie van een soort ticket (uit config), anders de algemene ticketcategorie
@@ -325,7 +280,7 @@ async function doClose(interaction) {
 // Zoekt de server via het paneelkanaal en zet het paneel neer
 async function checkPanel(client) {
   const s = settings();
-  if (!s.panelChannelId) return console.log('[tickets] Geen paneelkanaal: vul panelChannelId in src/config.js in (of gebruik /ticket-setup)');
+  if (!s.panelChannelId) return console.log('[tickets] Geen paneelkanaal: vul panelChannelId in src/config.js in');
   try {
     const channel = await client.channels.fetch(s.panelChannelId);
     console.log(`[tickets] Ticketpaneel ${await postPanel(channel.guild)}`);
@@ -350,9 +305,7 @@ module.exports = (client) => {
 
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
-      if (interaction.isChatInputCommand() && interaction.commandName === 'ticket-setup') {
-        await setup(interaction);
-      } else if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
+      if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
         const id = interaction.values[0];
         if (id === 'staff') await require('./applications').openForm(interaction);
         else if (id === 'partner') await require('./partners').openForm(interaction);
@@ -381,5 +334,4 @@ module.exports = (client) => {
     }
   });
 };
-module.exports.command = command;
 module.exports.settings = settings;
