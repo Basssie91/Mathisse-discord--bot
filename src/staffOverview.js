@@ -48,7 +48,7 @@ function buildEmbed(client, guild) {
   embed.addFields({
     name: '🔘 Knoppen',
     value: [
-      `🎫 **Ticket oppakken / sluiten** • ${roles([cfg.staffRoleId, cfg.bestuurRoleId]).length ? who(roles([cfg.staffRoleId, cfg.bestuurRoleId])) : 'Leden met Beheerder-rechten'}${cfg.bestuurRoleId ? ` (Bestuur-tickets: alleen ${who(roles([cfg.bestuurRoleId]))})` : ''}`,
+      `🎫 **Ticket oppakken / sluiten** • ${who(roles([cfg.staffRoleId, cfg.bestuurRoleId]), users(cfg.superUserIds))}${cfg.bestuurRoleId ? ` (Bestuur-tickets: alleen ${who(roles([cfg.bestuurRoleId]), users(cfg.superUserIds))})` : ''}`,
       `🛡️ **Sollicitaties afhandelen** • ${who(admins())}`,
       `🤝 **Partneraanvragen afhandelen** • ${who(admins())}`,
       `🎁 **Giveaway beëindigen / nieuwe winnaar** • ${who(roles(cfg.giveawayRoleIds), admins())}`,

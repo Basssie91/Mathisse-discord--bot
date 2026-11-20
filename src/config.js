@@ -8,8 +8,8 @@ module.exports = {
   welcomeChannelId: '1516133257014546713', // welkomstberichten
   rulesChannelId: '1516133257014546714', // regelskanaal: hier staat de regels-embed
   joinRoleId: '1516464931191525478',     // rol die nieuwe leden krijgen bij joinen
-  staffRoleId: '',         // ziet Vragen-tickets
-  bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
+  staffRoleId: '1516133255869497481',   // ziet Vragen-tickets
+  bestuurRoleId: '1516133255907115180', // ziet Vragen- en Bestuur-tickets
   transcriptChannelId: '1516133259434528809', // gesloten tickets met transcript
   partnerChannelId: '1571121191614283919', // (optioneel) geaccepteerde partners
   partnerRequestChannelId: '1573456737401311302', // nieuwe partneraanvragen (afhandelen: adminIds)
@@ -21,6 +21,9 @@ module.exports = {
 
   // Beheerders: mogen /changelog gebruiken en sollicitaties/partneraanvragen afhandelen
   adminIds: ['1057307298894196756', '1506618917324460114'],
+
+  // Ziet en kan alles in elk ticket (ook Bestuur-tickets), los van rollen
+  superUserIds: ['1057307298894196756'],
 
   // /opruimen: deze rollen en personen mogen berichten verwijderen
   purgeRoleIds: ['1516133255898730509'],

@@ -21,6 +21,7 @@ function teamRoles(type) {
   return (type.team ?? []).map((t) => (t === 'staff' ? s.staffRoleId : s.bestuurRoleId)).filter(Boolean);
 }
 const isTeam = (member, type) => member.permissions.has(P.Administrator)
+  || (cfg.superUserIds ?? []).includes(member.id)
   || member.roles.cache.some((r) => teamRoles(type).includes(r.id));
 
 // ---------- Categorie ----------
@@ -41,7 +42,7 @@ async function getCategory(guild, type) {
       permissionOverwrites: [
         { id: guild.roles.everyone.id, deny: [P.ViewChannel] },
         { id: guild.members.me.id, allow: [P.ViewChannel, P.ManageChannels] },
-        ...[s.staffRoleId, s.bestuurRoleId].filter(Boolean).map((id) => ({ id, allow: [P.ViewChannel] })),
+        ...[s.staffRoleId, s.bestuurRoleId, ...(cfg.superUserIds ?? [])].filter(Boolean).map((id) => ({ id, allow: [P.ViewChannel] })),
       ],
     });
   }
@@ -131,6 +132,9 @@ async function createTicket(interaction, type) {
       { id: guild.members.me.id, allow: [P.ViewChannel, P.SendMessages, P.ManageChannels, P.ReadMessageHistory, P.EmbedLinks, P.AttachFiles] },
       { id: user.id, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AttachFiles, P.EmbedLinks] },
       ...roles.map((id) => ({ id, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AttachFiles, P.ManageMessages] })),
+      // Altijd toegang tot elk ticket
+      ...(cfg.superUserIds ?? []).filter((id) => id !== user.id)
+        .map((id) => ({ id, allow: [P.ViewChannel, P.SendMessages, P.ReadMessageHistory, P.AttachFiles, P.ManageMessages] })),
     ],
   });
 
