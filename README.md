@@ -70,3 +70,6 @@ In `staffOverviewChannelId` staat een embed met alle commands en wie ze mag gebr
 
 ## Automatische staffrol
 Heeft iemand één van de rollen in `staffTriggerRoleIds`, dan krijgt hij `staffRoleId`; heeft hij er geen meer, dan gaat de staffrol weg. Bij elke start wordt iedereen gecontroleerd.
+
+## Suggesties
+In `suggestionChannelId`: paneel met knop **💡 Suggestie indienen** (staat altijd onderaan, komt terug als het weg is). Iedereen stemt met 👍/👎, elke suggestie krijgt een draadje, het team (staffrol, bestuurrol, beheerders) keurt goed of af. Leden kunnen in het kanaal zelf niet typen, wel in de draadjes.

@@ -79,6 +79,9 @@ require('./src/staffRole')(client);
 // /commands (overzicht voor iedereen)
 require('./src/help')(client);
 
+// Suggestiepaneel
+require('./src/suggestions')(client);
+
 // Staff-overzicht van alle commands en rechten
 require('./src/staffOverview')(client);
 

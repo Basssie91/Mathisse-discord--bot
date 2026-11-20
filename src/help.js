@@ -48,6 +48,7 @@ function build(interaction) {
         name: '🎁 Giveaways',
         value: `Doe mee met één klik op **🎉 Meedoen**${ch(cfg.giveawayChannelId) ? ` in ${ch(cfg.giveawayChannelId)}` : ''}`,
       },
+      ...(ch(cfg.suggestionChannelId) ? [{ name: '💡 Suggesties', value: `Heb je een idee? Dien het in via de knop in ${ch(cfg.suggestionChannelId)} en stem op andere ideeën` }] : []),
       ...(ch(cfg.rulesChannelId) ? [{ name: '📜 Regels', value: `Lees de regels in ${ch(cfg.rulesChannelId)}` }] : []),
     )
     .setFooter({ text: `Veel plezier in ${guild.name}!` });

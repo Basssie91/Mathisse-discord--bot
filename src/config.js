@@ -63,6 +63,9 @@ module.exports = {
   // Staff-overzicht van alle commands en wie ze mag gebruiken
   staffOverviewChannelId: '1516133258503655629',
 
+  // Suggesties
+  suggestionChannelId: '1516133258088288352',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 
