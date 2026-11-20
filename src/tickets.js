@@ -71,8 +71,14 @@ async function setup(interaction) {
 }
 
 // ---------- Categorie ----------
-async function getCategory(guild) {
+// Eigen categorie van een soort ticket (uit config), anders de algemene ticketcategorie
+async function getCategory(guild, type) {
   await guild.channels.fetch();
+  if (type?.categoryId) {
+    const own = guild.channels.cache.get(type.categoryId);
+    if (own?.type === ChannelType.GuildCategory) return own;
+    console.warn(`[tickets] ${type.categoryId} (${type.label}) is geen categorie, ik gebruik ${cfg.categoryName}`);
+  }
   const s = settings();
   let cat = guild.channels.cache.find((c) => c.type === ChannelType.GuildCategory && c.name === cfg.categoryName);
   if (!cat) {
@@ -92,7 +98,6 @@ async function getCategory(guild) {
 // ---------- Paneel ----------
 async function postPanel(guild) {
   const s = settings();
-  await getCategory(guild);
   const channel = await guild.channels.fetch(s.panelChannelId);
 
   const embed = new EmbedBuilder()
@@ -155,10 +160,10 @@ async function createTicket(interaction, type) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const { guild, user } = interaction;
   const reason = interaction.fields.getTextInputValue('reden');
-  const category = await getCategory(guild);
+  const category = await getCategory(guild, type);
 
   const tag = `ticket:${type.id}:${user.id}`;
-  const existing = guild.channels.cache.find((c) => c.parentId === category.id && c.topic?.includes(tag));
+  const existing = guild.channels.cache.find((c) => c.type === ChannelType.GuildText && c.topic?.includes(tag));
   if (existing) return interaction.editReply(`Je hebt al een open **${type.label}** ticket: ${existing}`);
 
   const roles = teamRoles(type);

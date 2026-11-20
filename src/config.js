@@ -28,8 +28,9 @@ module.exports = {
   // Keuzes in het ticketmenu.
   // team: welke rollen uit /ticket-setup het ticket kunnen zien ('staff' en/of 'bestuur')
   types: [
-    { id: 'vragen', label: 'Vragen', emoji: '❓', description: 'Heb je een vraag? Wij helpen je graag.', team: ['staff', 'bestuur'] },
-    { id: 'bestuur', label: 'Bestuur', emoji: '👑', description: 'Zaken die alleen voor het bestuur zijn.', team: ['bestuur'] },
+  // categoryId: categorie waar de tickets van deze soort in komen
+    { id: 'vragen', label: 'Vragen', emoji: '❓', description: 'Heb je een vraag? Wij helpen je graag.', team: ['staff', 'bestuur'], categoryId: '1543971187560808570' },
+    { id: 'bestuur', label: 'Bestuur', emoji: '👑', description: 'Zaken die alleen voor het bestuur zijn.', team: ['bestuur'], categoryId: '1545140372995309568' },
     { id: 'staff', label: 'Staff sollicitatie', emoji: '🛡️', description: 'Solliciteren voor staff? Vul het formulier in.' },
     { id: 'partner', label: 'Partner aanvraag', emoji: '🤝', description: 'Partner worden met jouw server? Vul het formulier in.' },
   ],

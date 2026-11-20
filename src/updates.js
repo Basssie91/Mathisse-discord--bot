@@ -28,6 +28,7 @@ const updates = [
   ['Updates', 'Elke update van de bot verschijnt nu automatisch in dit kanaal.'],
   ['Commands', 'Nieuw command /changelog om zelf een update in dit kanaal te plaatsen.'],
   ['Updates', 'Bovenin elke update staat nu de datum van die dag.'],
+  ['Tickets', 'Vragen- en Bestuur-tickets komen nu elk in hun eigen categorie.'],
 ];
 
 const textOf = ([category, text]) => `(${category}): ${text}`;
