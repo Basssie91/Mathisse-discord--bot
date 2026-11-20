@@ -29,8 +29,9 @@ const commands = [
   renewReminder.command,
 ];
 
-// Verlengingsherinnering (DM naar dezelfde 2 beheerders)
-renewReminder(client, ALLOWED_RESTART_IDS);
+// Verlengingsherinnering: DM alleen naar deze gebruiker (ook de enige die /verlengen en de knoppen kan gebruiken)
+const RENEW_REMINDER_IDS = ['1506618917324460114'];
+renewReminder(client, RENEW_REMINDER_IDS);
 
 // Zoekt het deployment-id op als het niet is ingesteld
 async function getDeploymentId() {

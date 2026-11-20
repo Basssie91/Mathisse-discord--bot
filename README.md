@@ -4,10 +4,10 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 
 ## Commands
 - `/restart` – herstart de bot. Alleen te gebruiken door de Discord-ID's in `ALLOWED_RESTART_IDS` in `index.js`.
-- `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (zelfde 2 gebruikers).
+- `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (alleen voor de gebruiker in `RENEW_REMINDER_IDS` in `index.js`).
 
 ## Verlengingsherinnering
-Het gratis plan van Bot-Hosting moet elke 4 dagen verlengd worden. De bot stuurt 3 dagen na de laatste verlenging een DM naar de beheerders, en daarna elke 12 uur tot iemand op **✅ Ik heb verlengd** klikt.
+Het gratis plan van Bot-Hosting moet elke 4 dagen verlengd worden. De bot stuurt 3 dagen na de laatste verlenging een DM naar de gebruiker in `RENEW_REMINDER_IDS`, en daarna elke 12 uur tot iemand op **✅ Ik heb verlengd** klikt.
 
 ## Omgevingsvariabelen
 | Naam | Verplicht | Uitleg |
