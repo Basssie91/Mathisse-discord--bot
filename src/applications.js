@@ -1,4 +1,4 @@
-// Staff-sollicitaties: formulier via het ticketmenu, afhandelen in de DM van de eigenaar
+// Staff-sollicitaties: formulier via het ticketmenu, afhandelen in het sollicitatiekanaal (alleen adminIds)
 const {
   Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags,
   ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder,
@@ -53,8 +53,10 @@ async function submit(interaction) {
 
   let msg;
   try {
-    const owner = await interaction.client.users.fetch(cfg.ownerId);
-    msg = await owner.send({
+    // Naar het sollicitatiekanaal; is dat er niet, dan naar de DM van de eigenaar
+    const target = (cfg.applicationChannelId && await interaction.client.channels.fetch(cfg.applicationChannelId).catch(() => null))
+      || await interaction.client.users.fetch(cfg.ownerId);
+    msg = await target.send({
       embeds: [embed],
       components: [new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(`app_accept:${id}`).setLabel('Accepteren').setEmoji('✅').setStyle(ButtonStyle.Success),
@@ -62,7 +64,7 @@ async function submit(interaction) {
       )],
     });
   } catch (e) {
-    console.warn('[sollicitatie] Kon de eigenaar geen DM sturen:', e.message);
+    console.warn('[sollicitatie] Kon de sollicitatie niet plaatsen:', e.message);
     return interaction.editReply('❌ Je sollicitatie kon niet worden verstuurd. Probeer het later opnieuw.');
   }
 
@@ -73,7 +75,7 @@ async function submit(interaction) {
   console.log(`[sollicitatie] Nieuwe sollicitatie van ${interaction.user.tag}`);
 }
 
-// ---------- Afhandelen (in de DM van de eigenaar) ----------
+// ---------- Afhandelen (alleen Bas en Mathisse) ----------
 function givableRoles(guild) {
   const s = settings();
   return [s.staffRoleId, s.extraStaffRoleId].filter(Boolean)
@@ -89,17 +91,17 @@ async function markDone(interaction, app, accepted, extra) {
     embeds: [EmbedBuilder.from(msg.embeds[0])
       .setColor(accepted ? '#57F287' : '#ED4245')
       .setTitle(accepted ? '✅  SOLLICITATIE GEACCEPTEERD' : '❌  SOLLICITATIE AFGEWEZEN')
-      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
+      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `door ${interaction.user} ${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
     components: [],
   });
 }
 
 async function onAccept(interaction, id) {
   const app = load(FILE, {})[id];
-  if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.' });
+  if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.', flags: MessageFlags.Ephemeral });
   const guild = interaction.client.guilds.cache.get(app.guildId);
   const roles = guild ? givableRoles(guild) : [];
-  if (!roles.length) return interaction.reply({ content: '❌ Er is geen staffrol ingesteld. Gebruik eerst /ticket-setup.' });
+  if (!roles.length) return interaction.reply({ content: '❌ Er is geen staffrol ingesteld. Vul staffRoleId in src/config.js in.', flags: MessageFlags.Ephemeral });
   if (roles.length === 1) return giveRole(interaction, id, roles[0].id);
   await interaction.reply({
     content: `Welke rol geef je aan <@${app.userId}>?`,
@@ -107,13 +109,14 @@ async function onAccept(interaction, id) {
       new StringSelectMenuBuilder().setCustomId(`app_role:${id}`).setPlaceholder('Kies een rol...')
         .addOptions(roles.map((r) => ({ label: r.name.slice(0, 100), value: r.id }))),
     )],
+    flags: MessageFlags.Ephemeral,
   });
 }
 
 async function giveRole(interaction, id, roleId) {
   const d = load(FILE, {});
   const app = d[id];
-  const done = (content) => (interaction.isStringSelectMenu() ? interaction.update({ content, components: [] }) : interaction.reply({ content }));
+  const done = (content) => (interaction.isStringSelectMenu() ? interaction.update({ content, components: [] }) : interaction.reply({ content, flags: MessageFlags.Ephemeral }));
   if (!app || app.status !== 'pending') return done('Deze sollicitatie is al afgehandeld.');
   const guild = interaction.client.guilds.cache.get(app.guildId);
   const role = guild?.roles.cache.get(roleId);
@@ -140,7 +143,7 @@ async function giveRole(interaction, id, roleId) {
 
 async function onDeny(interaction, id) {
   const app = load(FILE, {})[id];
-  if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.' });
+  if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.', flags: MessageFlags.Ephemeral });
   await interaction.showModal(new ModalBuilder()
     .setCustomId(`app_denyform:${id}`)
     .setTitle('❌ Sollicitatie afwijzen')
@@ -153,13 +156,13 @@ async function onDeny(interaction, id) {
 async function onDenySubmit(interaction, id) {
   const d = load(FILE, {});
   const app = d[id];
-  if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.' });
+  if (!app || app.status !== 'pending') return interaction.reply({ content: 'Deze sollicitatie is al afgehandeld.', flags: MessageFlags.Ephemeral });
   const reason = interaction.fields.getTextInputValue('reden').trim();
   app.status = 'denied';
   app.reason = reason || null;
   app.deniedAt = Date.now();
   save(FILE, d);
-  await interaction.reply({ content: '✅ Afgewezen. De sollicitant krijgt een DM.' });
+  await interaction.reply({ content: '✅ Afgewezen. De sollicitant krijgt een DM.', flags: MessageFlags.Ephemeral });
   await markDone(interaction, app, false, reason ? `📝 Reden: ${reason}` : null);
 
   const guild = interaction.client.guilds.cache.get(app.guildId);
@@ -184,8 +187,8 @@ module.exports = (client) => {
     if (!id?.startsWith('app_')) return;
     try {
       if (interaction.isModalSubmit() && id === 'app_form') return submit(interaction);
-      if (interaction.user.id !== cfg.ownerId) {
-        return interaction.reply({ content: '❌ Alleen de eigenaar kan sollicitaties afhandelen.', flags: MessageFlags.Ephemeral });
+      if (!cfg.adminIds.includes(interaction.user.id)) {
+        return interaction.reply({ content: '❌ Alleen de beheerders kunnen sollicitaties afhandelen.', flags: MessageFlags.Ephemeral });
       }
       const appId = id.split(':')[1];
       if (interaction.isButton() && id.startsWith('app_accept:')) return onAccept(interaction, appId);
