@@ -26,34 +26,70 @@ const ACCESS = {
   restart: () => who(admins()),
 };
 
+// Korte uitleg per command (anders de omschrijving van het command zelf)
+const SHORT = {
+  commands: 'Overzicht voor leden',
+  opruimen: 'Berichten verwijderen',
+  giveaway: 'Giveaway starten',
+  'staff-update': 'Aanname, promotie, degradatie of ontslag',
+  changelog: 'Changelog plaatsen',
+  content: 'YouTuber/streamer toevoegen',
+  'content-lijst': 'Contentmeldingen beheren',
+  verlengen: 'Verlenging bij Bot-Hosting',
+  restart: 'Bot herstarten',
+};
+
+// Groep op basis van wie het mag: iedereen / team (met rol) / beheerders (alleen personen)
+function groupOf(access) {
+  if (access.includes('Iedereen')) return '👥  Iedereen';
+  if (access.includes('<@&')) return '🛡️  Team';
+  return '👑  Beheerders';
+}
+const ORDER = ['👥  Iedereen', '🛡️  Team', '👑  Beheerders', '➕  Overig'];
+
 function buildEmbed(client, guild) {
   const cmds = [...client.application.commands.cache.values()].sort((a, b) => a.name.localeCompare(b.name));
-  const line = (c) => `</${c.name}:${c.id}> • ${c.description}\n-# 🔑 ${ACCESS[c.name] ? ACCESS[c.name]() : 'Zie de bot'}`;
-  const known = cmds.filter((c) => ACCESS[c.name]);
-  const other = cmds.filter((c) => !ACCESS[c.name]);
+  const groups = new Map();
+  for (const c of cmds) {
+    const access = ACCESS[c.name] ? ACCESS[c.name]() : null;
+    const name = access ? groupOf(access) : '➕  Overig';
+    if (!groups.has(name)) groups.set(name, { access, lines: [] });
+    groups.get(name).lines.push(`</${c.name}:${c.id}> ${SHORT[c.name] ?? c.description}`);
+  }
 
   const embed = new EmbedBuilder()
     .setColor(cfg.color)
     .setAuthor({ name: guild.name, iconURL: guild.iconURL({ size: 128 }) ?? undefined })
     .setTitle(TITLE)
-    // Commands in de beschrijving: daar past veel meer tekst in dan in een veld
-    .setDescription([
-      'Alle commands van de bot en wie ze kan gebruiken. Dit overzicht wordt automatisch bijgewerkt.',
-      '',
-      '**⌨️ Commands**',
-      ...known.map(line),
-      ...(other.length ? ['', '**➕ Overig**', ...other.map(line)] : []),
-    ].join('\n').slice(0, 4000));
+    .setDescription('Welke commands er zijn en wie ze kan gebruiken.\n-# Wordt automatisch bijgewerkt.');
 
-  embed.addFields({
-    name: '🔘 Knoppen',
-    value: [
-      `🎫 **Ticket oppakken / sluiten** • ${who(roles([cfg.staffRoleId, cfg.bestuurRoleId]), users(cfg.superUserIds))}${cfg.bestuurRoleId ? ` (Bestuur-tickets: alleen ${who(roles([cfg.bestuurRoleId]), users(cfg.superUserIds))})` : ''}`,
-      `🛡️ **Sollicitaties afhandelen** • ${who(admins())}`,
-      `🤝 **Partneraanvragen afhandelen** • ${who(admins())}`,
-      `🎁 **Giveaway beëindigen / nieuwe winnaar** • ${who(roles(cfg.giveawayRoleIds), admins())}`,
-    ].join('\n').slice(0, 1024),
-  })
+  for (const name of ORDER.filter((n) => groups.has(n))) {
+    const g = groups.get(name);
+    const whoLine = name === '👥  Iedereen' ? null : `-# 🔑 ${g.access ?? 'Zie de bot'}`;
+    embed.addFields({ name, value: [whoLine, ...g.lines].filter(Boolean).join('\n').slice(0, 1024) });
+  }
+
+  const teamRoles = who(roles([cfg.staffRoleId, cfg.bestuurRoleId]), users(cfg.superUserIds));
+  embed.addFields(
+    {
+      name: '🎫  Tickets',
+      value: [
+        `-# 🔑 ${teamRoles}`,
+        '**Vragen** oppakken en sluiten',
+        `**Bestuur** alleen ${who(roles([cfg.bestuurRoleId]), users(cfg.superUserIds))}`,
+      ].join('\n').slice(0, 1024),
+    },
+    {
+      name: '🔘  Overige knoppen',
+      value: [
+        `-# 🔑 ${who(admins())}`,
+        '**Sollicitaties** accepteren of afwijzen',
+        '**Partneraanvragen** accepteren of afwijzen',
+        `-# 🔑 ${who(roles(cfg.giveawayRoleIds), admins())}`,
+        '**Giveaway** beëindigen of nieuwe winnaar',
+      ].join('\n').slice(0, 1024),
+    },
+  )
     .setFooter({ text: 'Laatst bijgewerkt' })
     .setTimestamp();
   return embed;
