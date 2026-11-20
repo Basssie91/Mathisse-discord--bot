@@ -39,5 +39,5 @@ npm start
 ```
 
 ## Updates
-Elke wijziging aan de bot krijgt een nieuwe regel onderaan in `src/updates.js` (nieuw versienummer).
-Bij elke start plaatst de bot updates die nog niet in het updatekanaal staan, met het account van Bas erbij.
+Elke kleine wijziging aan de bot krijgt een nieuwe regel onderaan in `src/updates.js`, bijvoorbeeld `['Tickets', 'Wat er veranderd is.']`.
+Bij elke start plaatst de bot nieuwe updates in het updatekanaal als klein embed ("(Categorie): tekst") met het account van Bas eronder.
