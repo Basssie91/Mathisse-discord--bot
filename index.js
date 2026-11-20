@@ -34,6 +34,7 @@ const commands = [
   renewReminder.command,
   require('./src/updates').command,
   require('./src/purge').command,
+  require('./src/giveaway').command,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag
@@ -52,6 +53,9 @@ require('./src/updates')(client);
 
 // /opruimen
 require('./src/purge')(client);
+
+// /giveaway
+require('./src/giveaway')(client);
 
 // Verlengingsherinnering
 renewReminder(client, {

@@ -7,6 +7,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 - `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (voor de gebruikers in `allowedIds` in `index.js`).
 
 - `/opruimen` – berichten verwijderen (1-100, optioneel van één persoon). Voor `purgeRoleIds` en `purgeUserIds` in `src/config.js`.
+- `/giveaway` – giveaway starten in `giveawayChannelId` (prijs, duur zoals 30m/2u/1d/1w, aantal winnaars). Voor `adminIds` en `giveawayRoleIds`.
 - `/changelog` – changelog bekijken, regels toevoegen en publiceren (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem

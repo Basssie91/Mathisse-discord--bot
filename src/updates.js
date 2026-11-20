@@ -38,6 +38,7 @@ const items = [
   { id: 'regels', section: '📜 Regels', text: 'De **serverregels** staan in het regelskanaal en komen automatisch terug als ze verwijderd worden' },
   { id: 'cmd-changelog', section: '⌨️ Commando\'s', text: 'Nieuw: **/changelog** om updates zoals deze te plaatsen' },
   { id: 'cmd-opruimen', section: '⌨️ Commando\'s', text: 'Nieuw: **/opruimen** om berichten te verwijderen, eventueel alleen van één persoon' },
+  { id: 'giveaways', section: '🎁 Giveaways', text: 'Nieuw: **/giveaway**! Doe mee met één klik op **🎉 Meedoen**, de winnaars worden willekeurig gekozen' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
@@ -52,7 +53,7 @@ const nextVersion = () => `v1.${loadState().published.length + 1}`;
 const isAdmin = (user) => cfg.adminIds.includes(user.id);
 
 // Volgorde van de kopjes: eerst serverdingen, commando's en bot als laatste
-const RANK = ['🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
+const RANK = ['🎁 Giveaways', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
 const rank = (name) => { const i = RANK.indexOf(name); return i === -1 ? RANK.length - 2 : i; };
 
 function buildEmbed(guild, list, title) {

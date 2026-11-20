@@ -26,6 +26,10 @@ module.exports = {
   purgeRoleIds: ['1516133255898730509'],
   purgeUserIds: ['1057307298894196756', '1506618917324460114'],
 
+  // /giveaway: kanaal en wie een giveaway mag starten (plus adminIds)
+  giveawayChannelId: '1523674964404998294',
+  giveawayRoleIds: ['1516133255898730509'],
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 
