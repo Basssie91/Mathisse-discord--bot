@@ -52,3 +52,6 @@ Met `/changelog` zie je een voorbeeld van alles wat nog niet geplaatst is, kun j
 
 ## Woordketting
 In `wordChainChannelId`: elk woord begint met de laatste letter van het vorige, alleen Nederlandse woorden (OpenTaal-lijst, wordt bij de eerste start gedownload naar `data/`), geen dubbele woorden en niet twee keer achter elkaar. Berichten van terwijl de bot offline was worden na het opstarten alsnog verwerkt.
+
+## Tellen
+In `countingChannelId`: steeds het volgende getal, niet twee keer achter elkaar, fout = opnieuw bij 1. Begint bij `countingStartAt` + 1 (135). Gemiste berichten worden na een herstart alsnog verwerkt.

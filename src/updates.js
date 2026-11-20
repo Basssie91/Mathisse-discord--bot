@@ -41,6 +41,8 @@ const items = [
   { id: 'giveaways', section: '🎁 Giveaways', text: 'Nieuw: **/giveaway**! Doe mee met één klik op **🎉 Meedoen**, de winnaars worden willekeurig gekozen' },
   { id: 'woordketting', section: '🎮 Spellen', text: 'Nieuw: **woordketting**! Elk woord begint met de laatste letter van het vorige woord' },
   { id: 'woordketting-inhalen', section: '🎮 Spellen', text: 'Woorden die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
+  { id: 'tellen', section: '🎮 Spellen', text: 'Nieuw: **tellen**! We gaan verder waar jullie gebleven waren, bij **135**' },
+  { id: 'tellen-inhalen', section: '🎮 Spellen', text: 'Getallen die je stuurt terwijl de bot offline is, worden **alsnog gecontroleerd** zodra hij weer online is' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';

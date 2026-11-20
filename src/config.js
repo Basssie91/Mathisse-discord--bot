@@ -33,6 +33,10 @@ module.exports = {
   // Woordketting
   wordChainChannelId: '1573464580741533706',
 
+  // Tellen (met de vorige bot waren ze bij 134, dus het volgende getal is 135)
+  countingChannelId: '1524408810654138378',
+  countingStartAt: 134,
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

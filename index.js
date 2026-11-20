@@ -60,6 +60,9 @@ require('./src/giveaway')(client);
 // Woordketting (haalt gemiste woorden in na een herstart)
 require('./src/wordchain')(client);
 
+// Tellen (haalt gemiste getallen in na een herstart)
+require('./src/counting')(client);
+
 // Verlengingsherinnering
 renewReminder(client, {
   notifyIds: ['1506618917324460114'], // krijgt de DM-herinnering
