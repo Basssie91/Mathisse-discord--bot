@@ -9,6 +9,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 - `/opruimen` – berichten verwijderen (1-100, optioneel van één persoon). Voor `purgeRoleIds` en `purgeUserIds` in `src/config.js`.
 - `/giveaway` – opent een formulier (prijs, aantal winnaars 1-10, duur 1 uur t/m 4 weken, uitleg) en start de giveaway in `giveawayChannelId`. Voor `adminIds` en `giveawayRoleIds`.
 - `/content` – formulier om een YouTuber of streamer toe te voegen (link + wie taggen). `/content-lijst` – overzicht en verwijderen. Alleen `adminIds`.
+- `/staff-update` – formulier (persoon, Aangenomen/Ontslagen/Promotie/Degraderen, rol, reden) → bericht in `staffUpdateChannelId`. Voor `adminIds` en `staffUpdateRoleIds`.
 - `/changelog` – changelog bekijken, regels toevoegen en publiceren (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem

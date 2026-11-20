@@ -37,6 +37,7 @@ const commands = [
   require('./src/giveaway').command,
   require('./src/content').command,
   require('./src/content').listCommand,
+  require('./src/staffUpdate').command,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag
@@ -67,6 +68,9 @@ require('./src/counting')(client);
 
 // Contentmeldingen (YouTube, Twitch, Kick)
 require('./src/content')(client);
+
+// /staff-update
+require('./src/staffUpdate')(client);
 
 // Botstatus in het statuskanaal
 const status = require('./src/status');

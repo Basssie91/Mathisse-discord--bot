@@ -43,6 +43,10 @@ module.exports = {
   // Contentmeldingen (YouTube, Twitch, Kick), beheren met /content
   contentChannelId: '1516133257933226090',
 
+  // /staff-update: kanaal en wie het mag gebruiken (plus adminIds)
+  staffUpdateChannelId: '1573382523323420712',
+  staffUpdateRoleIds: [],
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 
