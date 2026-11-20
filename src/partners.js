@@ -1,4 +1,4 @@
-// Partneraanvragen: formulier via het ticketmenu, afhandelen in de DM van de eigenaar
+// Partneraanvragen: formulier via het ticketmenu, afhandelen in het aanvraagkanaal (alleen adminIds)
 const {
   Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags,
   ModalBuilder, TextInputBuilder, TextInputStyle,
@@ -74,8 +74,10 @@ async function submit(interaction) {
   if (req.icon) embed.setThumbnail(req.icon);
 
   try {
-    const owner = await interaction.client.users.fetch(cfg.ownerId);
-    const msg = await owner.send({
+    // Naar het aanvraagkanaal; is dat er niet, dan naar de DM van de eigenaar
+    const target = (cfg.partnerRequestChannelId && await interaction.client.channels.fetch(cfg.partnerRequestChannelId).catch(() => null))
+      || await interaction.client.users.fetch(cfg.ownerId);
+    const msg = await target.send({
       embeds: [embed],
       components: [new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(`partner_accept:${req.id}`).setLabel('Accepteren').setEmoji('✅').setStyle(ButtonStyle.Success),
@@ -84,7 +86,7 @@ async function submit(interaction) {
     });
     req.messageId = msg.id;
   } catch (e) {
-    console.warn('[partners] Kon de eigenaar geen DM sturen:', e.message);
+    console.warn('[partners] Kon de aanvraag niet plaatsen:', e.message);
     return interaction.editReply('❌ Je aanvraag kon niet worden verstuurd. Probeer het later opnieuw.');
   }
 
@@ -95,7 +97,7 @@ async function submit(interaction) {
   console.log(`[partners] Nieuwe aanvraag van ${interaction.user.tag}: ${name}`);
 }
 
-// ---------- Beslissen (in de DM van de eigenaar) ----------
+// ---------- Beslissen (alleen Bas en Mathisse) ----------
 async function markDone(interaction, req, accepted, extra) {
   // In een DM is het kanaal soms niet in de cache: dan de DM zelf openen
   const dm = interaction.channel ?? await interaction.user.createDM();
@@ -104,7 +106,7 @@ async function markDone(interaction, req, accepted, extra) {
   await msg.edit({
     embeds: [EmbedBuilder.from(msg.embeds[0])
       .setColor(accepted ? '#57F287' : '#ED4245')
-      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
+      .addFields({ name: accepted ? '✅ Geaccepteerd' : '❌ Afgewezen', value: `door ${interaction.user} ${ts(Date.now())}${extra ? `\n${extra}` : ''}` })],
     components: [],
   });
 }
@@ -112,8 +114,8 @@ async function markDone(interaction, req, accepted, extra) {
 async function accept(interaction, reqId) {
   const d = load(FILE, {});
   const req = d[reqId];
-  if (!req || req.status !== 'pending') return interaction.reply({ content: 'Deze aanvraag is al afgehandeld.' });
-  await interaction.deferReply();
+  if (!req || req.status !== 'pending') return interaction.reply({ content: 'Deze aanvraag is al afgehandeld.', flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const s = settings();
   const guild = interaction.client.guilds.cache.get(req.guildId);
 
@@ -162,7 +164,7 @@ async function accept(interaction, reqId) {
 
 async function askDenyReason(interaction, reqId) {
   const req = load(FILE, {})[reqId];
-  if (!req || req.status !== 'pending') return interaction.reply({ content: 'Deze aanvraag is al afgehandeld.' });
+  if (!req || req.status !== 'pending') return interaction.reply({ content: 'Deze aanvraag is al afgehandeld.', flags: MessageFlags.Ephemeral });
   await interaction.showModal(new ModalBuilder()
     .setCustomId(`partner_denyform:${reqId}`)
     .setTitle('❌ Aanvraag afwijzen')
@@ -172,12 +174,12 @@ async function askDenyReason(interaction, reqId) {
 async function deny(interaction, reqId) {
   const d = load(FILE, {});
   const req = d[reqId];
-  if (!req || req.status !== 'pending') return interaction.reply({ content: 'Deze aanvraag is al afgehandeld.' });
+  if (!req || req.status !== 'pending') return interaction.reply({ content: 'Deze aanvraag is al afgehandeld.', flags: MessageFlags.Ephemeral });
   const reason = interaction.fields.getTextInputValue('reden').trim();
   req.status = 'denied';
   req.reason = reason || null;
   save(FILE, d);
-  await interaction.reply({ content: '✅ Afgewezen. De aanvrager krijgt een DM.' });
+  await interaction.reply({ content: '✅ Afgewezen. De aanvrager krijgt een DM.', flags: MessageFlags.Ephemeral });
   await markDone(interaction, req, false, reason ? `**Reden:** ${reason}` : null);
 
   const guild = interaction.client.guilds.cache.get(req.guildId);
@@ -196,8 +198,8 @@ module.exports = (client) => {
     if (!id?.startsWith('partner_')) return;
     try {
       if (interaction.isModalSubmit() && id === 'partner_form') return submit(interaction);
-      if (interaction.user.id !== cfg.ownerId) {
-        return interaction.reply({ content: '❌ Alleen de eigenaar kan partneraanvragen afhandelen.', flags: MessageFlags.Ephemeral });
+      if (!cfg.adminIds.includes(interaction.user.id)) {
+        return interaction.reply({ content: '❌ Alleen de beheerders kunnen partneraanvragen afhandelen.', flags: MessageFlags.Ephemeral });
       }
       const reqId = id.split(':')[1];
       if (interaction.isButton() && id.startsWith('partner_accept:')) return accept(interaction, reqId);

@@ -10,6 +10,7 @@ module.exports = {
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
   transcriptChannelId: '', // (optioneel) transcripts van gesloten tickets
   partnerChannelId: '1571121191614283919', // (optioneel) geaccepteerde partners
+  partnerRequestChannelId: '1573456737401311302', // nieuwe partneraanvragen (afhandelen: adminIds)
   partnerRoleId: '',       // (optioneel) rol voor partners
   extraStaffRoleId: '',    // (optioneel) tweede keuze bij accepteren sollicitatie
 
