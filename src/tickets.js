@@ -164,23 +164,6 @@ async function createTicket(interaction, type) {
   });
   await interaction.editReply(`✅ Je ticket is aangemaakt: ${channel}`);
   console.log(`[tickets] ${user.tag} opende een ${type.label} ticket`);
-  await logTicket(guild, new EmbedBuilder()
-    .setColor('#57F287')
-    .setTitle(`🎫  TICKET GEOPEND • ${channel.name}`)
-    .addFields(
-      { name: '🏷️ Soort', value: `${type.emoji} ${type.label}`, inline: true },
-      { name: '👤 Geopend door', value: `${user}`, inline: true },
-      { name: '📍 Kanaal', value: `${channel}`, inline: true },
-      { name: '📝 Onderwerp', value: reason.slice(0, 1024) },
-    ));
-}
-
-// Ticketlog in het logkanaal (geopend / opgepakt; gesloten staat in doClose met transcript)
-async function logTicket(guild, embed) {
-  const id = settings().transcriptChannelId;
-  if (!id) return;
-  const log = await guild.channels.fetch(id).catch(() => null);
-  await log?.send({ embeds: [embed.setTimestamp()], allowedMentions: { parse: [] } }).catch((e) => console.warn('[tickets] Log mislukt:', e.message));
 }
 
 function ticketInfo(channel) {
@@ -202,16 +185,6 @@ async function claim(interaction) {
     interaction.channel.setName(`✅${interaction.channel.name}`.slice(0, 100), 'Ticket opgepakt').catch(() => {});
   }
   await interaction.channel.send(`🙋 ${interaction.user} heeft dit ticket opgepakt en helpt je verder.`);
-  const opener = ticketInfo(interaction.channel)?.userId;
-  await logTicket(interaction.guild, new EmbedBuilder()
-    .setColor('#FEE75C')
-    .setTitle(`🙋  TICKET OPGEPAKT • ${interaction.channel.name.replace(/^✅/, '')}`)
-    .addFields(
-      { name: '🏷️ Soort', value: `${info.type.emoji} ${info.type.label}`, inline: true },
-      { name: '🙋 Opgepakt door', value: `${interaction.user}`, inline: true },
-      { name: '👤 Van', value: opener ? `<@${opener}>` : 'Onbekend', inline: true },
-      { name: '📍 Kanaal', value: `${interaction.channel}`, inline: true },
-    ));
 }
 
 async function askClose(interaction) {
@@ -266,6 +239,10 @@ async function doClose(interaction) {
       subject, type: typeLabel, opener: opener?.tag ?? 'Onbekend', closer: user.tag, reason,
     });
     const file = () => new AttachmentBuilder(Buffer.from(html, 'utf8'), { name: `transcript-${channel.name}.html` });
+    // Download-knop: geeft bij elke klik een verse link (Discord laat bestandslinks na een tijd verlopen)
+    const downloadRow = () => new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('transcript_dl').setLabel('Download transcript').setEmoji('📥').setStyle(ButtonStyle.Secondary),
+    );
 
     const s = settings();
     const log = s.transcriptChannelId ? await guild.channels.fetch(s.transcriptChannelId).catch(() => null) : null;
@@ -285,6 +262,7 @@ async function doClose(interaction) {
           .setFooter({ text: 'Open het bestand in je browser om het hele gesprek te lezen.' })
           .setTimestamp()],
         files: [file()],
+        components: [downloadRow()],
         allowedMentions: { parse: [] },
       });
     }
@@ -296,6 +274,7 @@ async function doClose(interaction) {
           .setDescription(`Je **${type?.label ?? ''}** ticket is gesloten door **${interaction.member.displayName}**.\n🔒 **Reden:** ${reason}\n\nIn de bijlage vind je het hele gesprek. Bedankt voor je bericht! 💙`)
           .setTimestamp()],
         files: [file()],
+        components: [downloadRow()],
       }).catch(() => console.log(`[tickets] Kon ${opener.tag} geen DM sturen`));
     }
   } catch (e) {
@@ -332,7 +311,13 @@ module.exports = (client) => {
 
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
-      if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
+      if (interaction.isButton() && interaction.customId === 'transcript_dl') {
+        const att = interaction.message?.attachments?.find((a) => a.name?.endsWith('.html'));
+        await interaction.reply({
+          content: att ? `📥 **[Klik hier om de transcript te downloaden](${att.url})**\nOpen het bestand daarna in je browser.` : '❌ Ik kan het bestand niet meer vinden.',
+          flags: MessageFlags.Ephemeral,
+        });
+      } else if (interaction.isStringSelectMenu() && interaction.customId === 'ticket_select') {
         const id = interaction.values[0];
         if (id === 'staff') await require('./applications').openForm(interaction);
         else if (id === 'partner') await require('./partners').openForm(interaction);

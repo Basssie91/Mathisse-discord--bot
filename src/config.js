@@ -10,7 +10,7 @@ module.exports = {
   joinRoleId: '1516464931191525478',     // rol die nieuwe leden krijgen bij joinen
   staffRoleId: '',         // ziet Vragen-tickets
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
-  transcriptChannelId: '1516133259434528809', // ticketlogs: geopend, opgepakt, gesloten (met transcript)
+  transcriptChannelId: '1516133259434528809', // gesloten tickets met transcript
   partnerChannelId: '1571121191614283919', // (optioneel) geaccepteerde partners
   partnerRequestChannelId: '1573456737401311302', // nieuwe partneraanvragen (afhandelen: adminIds)
   applicationChannelId: '1573457687113637978', // nieuwe staff-sollicitaties (afhandelen: adminIds)
