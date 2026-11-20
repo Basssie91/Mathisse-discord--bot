@@ -19,11 +19,18 @@ if (!TOKEN) {
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+const renewReminder = require('./renewReminder');
+
 const commands = [
   new SlashCommandBuilder()
     .setName('restart')
-    .setDescription('Herstart de bot (alleen voor beheerders van de bot)'),
-].map((c) => c.toJSON());
+    .setDescription('Herstart de bot (alleen voor beheerders van de bot)')
+    .toJSON(),
+  renewReminder.command,
+];
+
+// Verlengingsherinnering (DM naar dezelfde 2 beheerders)
+renewReminder(client, ALLOWED_RESTART_IDS);
 
 // Zoekt het deployment-id op als het niet is ingesteld
 async function getDeploymentId() {
