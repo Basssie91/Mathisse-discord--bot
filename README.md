@@ -6,7 +6,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 - `/restart` – herstart de bot. Alleen te gebruiken door de Discord-ID's in `ALLOWED_RESTART_IDS` in `index.js`.
 - `/verlengen` – status van de verlenging bij Bot-Hosting, met knoppen (voor de gebruikers in `allowedIds` in `index.js`).
 
-- `/changelog` – zelf een update plaatsen in het updatekanaal (formulier met categorie en wijziging; alleen beheerders uit `src/config.js`).
+- `/changelog` – changelog bekijken, regels toevoegen en publiceren (alleen beheerders uit `src/config.js`).
 
 ## Ticketsysteem
 Paneel met een uitklapmenu:
@@ -44,6 +44,6 @@ npm install
 npm start
 ```
 
-## Updates
-Elke kleine wijziging aan de bot krijgt een nieuwe regel onderaan in `src/updates.js`, bijvoorbeeld `['Tickets', 'Wat er veranderd is.']`.
-Bij elke start plaatst de bot nieuwe updates in het updatekanaal als klein embed ("(Categorie): tekst") met het account van Bas eronder.
+## Changelog
+Elke wijziging aan de bot krijgt een regel in `src/updates.js` (met een vaste, unieke id).
+Met `/changelog` zie je een voorbeeld van alles wat nog niet geplaatst is, kun je zelf regels toevoegen (➕) en publiceer je de update (✅) in het changelogkanaal, met versienummer, kopjes en banner. De bot onthoudt wat al geplaatst is.

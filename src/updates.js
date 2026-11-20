@@ -1,126 +1,176 @@
 // ============================================================
-//  UPDATES
-//  Elke kleine wijziging aan de bot komt hier als nieuwe regel bij (onderaan).
-//  Bij elke start plaatst de bot de updates die nog niet in het updatekanaal staan,
-//  elk als een klein embed: "(Categorie): tekst", met het account van Bas eronder.
-//  De bot kijkt in het kanaal zelf wat er al staat, dus niets wordt dubbel geplaatst.
-//  Wijzig of verwijder geen regels die al geplaatst zijn (dan wordt hij opnieuw geplaatst).
+//  CHANGELOG
+//  Elke wijziging aan de bot komt hieronder als regel bij (met een vaste, unieke id).
+//  Met /changelog zie je eerst een voorbeeld van alles wat nog niet geplaatst is,
+//  je kunt zelf regels toevoegen, en daarna kies je of je hem publiceert.
+//  De bot onthoudt welke regels al geplaatst zijn.
 // ============================================================
+const path = require('node:path');
 const {
-  Events, EmbedBuilder, SlashCommandBuilder, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, MessageFlags,
+  Events, EmbedBuilder, AttachmentBuilder, SlashCommandBuilder, ModalBuilder, ActionRowBuilder,
+  TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, MessageFlags,
 } = require('discord.js');
 const cfg = require('./config');
+const store = require('./store');
 
 const CHANNEL_ID = '1554884573274574908';
-const AUTHOR_ID = '1057307298894196756'; // Bas: staat onder elke update
-const COLOR = '#3B8BEB';
+const BANNER_FILE = 'banner.png';
+const BANNER_PATH = path.join(__dirname, '..', 'assets', BANNER_FILE);
 
-const updates = [
-  ['Bot', 'De bot draait nu 24/7 op Bot-Hosting.'],
-  ['Commands', 'Nieuw command /restart om de bot vanuit Discord te herstarten.'],
-  ['Bot', 'De eigenaar krijgt een DM wanneer de server bij Bot-Hosting verlengd moet worden.'],
-  ['Commands', 'Nieuw command /verlengen met de status van de verlenging.'],
-  ['Tickets', 'Ticketpaneel met uitklapmenu toegevoegd: Vragen en Bestuur openen een privé ticket.'],
-  ['Tickets', 'Staff sollicitaties gaan nu via een formulier in het ticketmenu.'],
-  ['Tickets', 'Partneraanvragen gaan nu via een formulier, de uitnodigingslink wordt automatisch gecontroleerd.'],
-  ['Tickets', 'Bij het sluiten van een ticket krijg je het hele gesprek als transcript in je DM.'],
-  ['Tickets', 'Het ticketpaneel wordt na een herstart automatisch teruggezet als het weg is.'],
-  ['Updates', 'Elke update van de bot verschijnt nu automatisch in dit kanaal.'],
-  ['Commands', 'Nieuw command /changelog om zelf een update in dit kanaal te plaatsen.'],
-  ['Updates', 'Bovenin elke update staat nu de datum van die dag.'],
-  ['Tickets', 'Vragen- en Bestuur-tickets komen nu elk in hun eigen categorie.'],
-  ['Partners', 'Geaccepteerde partners worden nu automatisch in het partnerkanaal geplaatst.'],
-  ['Partners', 'Nieuwe partneraanvragen komen nu in een eigen kanaal en kunnen door de beheerders worden afgehandeld.'],
-  ['Tickets', 'Staff sollicitaties komen nu in een eigen kanaal en kunnen door de beheerders worden afgehandeld.'],
-  ['Tickets', 'Bij het accepteren van een sollicitatie kies je nu zelf welke rol iemand krijgt.'],
-  ['Commands', 'Het command /ticket-setup is verwijderd, het ticketsysteem stelt zichzelf in.'],
-  ['Welkom', 'Nieuwe leden krijgen nu een welkomstbericht.'],
-  ['Welkom', 'Nieuwe leden krijgen bij het joinen automatisch een rol.'],
-  ['Regels', 'De serverregels staan nu in het regelskanaal en komen automatisch terug als ze verwijderd worden.'],
+// Regels van de bot zelf (nieuwe onderaan toevoegen, id nooit hergebruiken)
+const items = [
+  { id: 'bot-online', section: '⚙️ Bot', text: 'De bot draait nu **24/7** op Bot-Hosting' },
+  { id: 'cmd-restart', section: '⌨️ Commando\'s', text: 'Nieuw: **/restart** om de bot vanuit Discord te herstarten' },
+  { id: 'bot-verlengen', section: '⚙️ Bot', text: 'De eigenaar krijgt een **DM** wanneer de server bij Bot-Hosting verlengd moet worden' },
+  { id: 'cmd-verlengen', section: '⌨️ Commando\'s', text: 'Nieuw: **/verlengen** met de status van de verlenging' },
+  { id: 'tickets-paneel', section: '🎫 Tickets', text: 'Nieuw **ticketpaneel** met uitklapmenu: ❓ Vragen en 👑 Bestuur openen een privé ticket' },
+  { id: 'tickets-categorie', section: '🎫 Tickets', text: 'Vragen- en Bestuur-tickets komen elk in hun **eigen categorie**' },
+  { id: 'tickets-transcript', section: '🎫 Tickets', text: 'Bij het sluiten krijg je het hele gesprek als **transcript** in je DM' },
+  { id: 'tickets-terug', section: '🎫 Tickets', text: 'Het ticketpaneel komt **automatisch terug** als het weg is' },
+  { id: 'sollicitatie-formulier', section: '🛡️ Staff', text: '**Staff sollicitaties** gaan via een formulier in het ticketmenu' },
+  { id: 'sollicitatie-kanaal', section: '🛡️ Staff', text: 'Sollicitaties komen in een **eigen kanaal** en worden door de beheerders afgehandeld' },
+  { id: 'sollicitatie-rol', section: '🛡️ Staff', text: 'Bij accepteren kies je zelf **welke rol** iemand krijgt' },
+  { id: 'partners-formulier', section: '🤝 Partners', text: '**Partneraanvragen** gaan via een formulier, de uitnodigingslink wordt gecontroleerd' },
+  { id: 'partners-kanaal', section: '🤝 Partners', text: 'Aanvragen komen in een **eigen kanaal** en worden door de beheerders afgehandeld' },
+  { id: 'partners-plaatsen', section: '🤝 Partners', text: 'Geaccepteerde partners worden **automatisch geplaatst** in het partnerkanaal' },
+  { id: 'welkom-bericht', section: '👋 Welkom', text: 'Nieuwe leden krijgen een **welkomstbericht**' },
+  { id: 'welkom-rol', section: '👋 Welkom', text: 'Nieuwe leden krijgen bij het joinen **automatisch een rol**' },
+  { id: 'regels', section: '📜 Regels', text: 'De **serverregels** staan in het regelskanaal en komen automatisch terug als ze verwijderd worden' },
+  { id: 'cmd-changelog', section: '⌨️ Commando\'s', text: 'Nieuw: **/changelog** om updates zoals deze te plaatsen' },
 ];
 
-const textOf = ([category, text]) => `(${category}): ${text}`;
+const DEFAULT_TITLE = '🚀 Update';
+const loadState = () => store.load('changelog-state.json', { published: [], custom: [] });
+const saveState = (s) => store.save('changelog-state.json', s);
+const openItems = () => {
+  const st = loadState();
+  const done = new Set(st.published.flatMap((b) => b.ids));
+  return [...items, ...(st.custom ?? [])].filter((i) => !done.has(i.id));
+};
+const nextVersion = () => `v1.${loadState().published.length + 1}`;
+const isAdmin = (user) => cfg.adminIds.includes(user.id);
 
-// Eén update-embed: "(Categorie): tekst" met de maker eronder
-// Datum van vandaag bovenin, bv. "📅 20 november 2026" (Nederlandse tijd)
-const today = () => `📅 ${new Date().toLocaleDateString('nl-NL', { timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long', year: 'numeric' })}`;
+// Volgorde van de kopjes: eerst serverdingen, commando's en bot als laatste
+const RANK = ['🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
+const rank = (name) => { const i = RANK.indexOf(name); return i === -1 ? RANK.length - 2 : i; };
 
-function updateEmbed(text, user) {
-  const embed = new EmbedBuilder().setColor(COLOR).setTitle(today()).setDescription(text);
-  if (user) embed.setFooter({ text: user.globalName ?? user.username, iconURL: user.displayAvatarURL({ size: 64 }) });
-  return embed;
+function buildEmbed(guild, list, title) {
+  const sections = [];
+  for (const i of list) {
+    let sec = sections.find((x) => x.name === i.section);
+    if (!sec) { sec = { name: i.section, items: [] }; sections.push(sec); }
+    sec.items.push(i.text);
+  }
+  sections.sort((a, b) => rank(a.name) - rank(b.name));
+  return new EmbedBuilder()
+    .setColor('#FFFFFF')
+    .setAuthor({ name: `📋  CHANGELOG • ${guild.name}`, iconURL: guild.iconURL({ size: 128 }) ?? undefined })
+    .setTitle(`${nextVersion()} • ${title}`)
+    .setDescription(`Update van <t:${Math.floor(Date.now() / 1000)}:D>`)
+    .addFields(sections.slice(0, 25).map((sec) => ({
+      name: sec.name,
+      value: sec.items.map((t) => `• ${t}`).join('\n').slice(0, 1024),
+    })))
+    .setImage(`attachment://${BANNER_FILE}`)
+    .setFooter({ text: 'Ideeën? Maak een ticket aan!' })
+    .setTimestamp();
+}
+const banner = () => new AttachmentBuilder(BANNER_PATH, { name: BANNER_FILE });
+
+const controls = () => [new ActionRowBuilder().addComponents(
+  new ButtonBuilder().setCustomId('cl_publish').setLabel('Publiceren').setEmoji('✅').setStyle(ButtonStyle.Success),
+  new ButtonBuilder().setCustomId('cl_add').setLabel('Regel toevoegen').setEmoji('➕').setStyle(ButtonStyle.Primary),
+  new ButtonBuilder().setCustomId('cl_cancel').setLabel('Annuleren').setEmoji('❌').setStyle(ButtonStyle.Secondary),
+)];
+
+function preview(guild) {
+  const list = openItems();
+  if (!list.length) {
+    return { content: '📭 Er zijn geen nieuwe updates. Klik op **➕ Regel toevoegen** om zelf iets te schrijven.', embeds: [], files: [], attachments: [], components: controls() };
+  }
+  return {
+    content: `👀 **Voorbeeld**: zo komt de changelog eruit te zien (${list.length} regel${list.length === 1 ? '' : 's'}). Alleen jij ziet dit.`,
+    embeds: [buildEmbed(guild, list, DEFAULT_TITLE)],
+    files: [banner()],
+    attachments: [],
+    components: controls(),
+  };
 }
 
-// ---------- /changelog: zelf een update schrijven ----------
 const command = new SlashCommandBuilder()
   .setName('changelog')
-  .setDescription('Zelf een update plaatsen in het updatekanaal')
+  .setDescription('Changelog bekijken, regels toevoegen en publiceren')
   .setDMPermission(false)
   .toJSON();
 
-async function openForm(interaction) {
-  if (!cfg.adminIds.includes(interaction.user.id)) {
-    return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
-  }
-  await interaction.showModal(new ModalBuilder()
-    .setCustomId('changelog_form')
-    .setTitle('📋 Update plaatsen')
-    .addComponents(
-      new ActionRowBuilder().addComponents(new TextInputBuilder()
-        .setCustomId('categorie').setLabel('Categorie').setStyle(TextInputStyle.Short)
-        .setPlaceholder('Bijv. Tickets, Bot, Commands, Server').setMaxLength(40).setRequired(true)),
-      new ActionRowBuilder().addComponents(new TextInputBuilder()
-        .setCustomId('wijziging').setLabel('Wat is er aangepast?').setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder('Bijv. Het ticketpaneel heeft een nieuwe banner.').setMaxLength(1000).setRequired(true)),
-    ));
-}
-
-async function submitForm(interaction) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const category = interaction.fields.getTextInputValue('categorie').trim().replace(/^\(|\)$/g, '');
-  let text = interaction.fields.getTextInputValue('wijziging').trim();
-  if (!/[.!?]$/.test(text)) text += '.';
-  const channel = await interaction.client.channels.fetch(CHANNEL_ID).catch(() => null);
-  if (!channel) return interaction.editReply('❌ Ik kan het updatekanaal niet vinden.');
-  try {
-    const msg = await channel.send({ embeds: [updateEmbed(`(${category}): ${text}`, interaction.user)] });
-    await interaction.editReply(`✅ Update geplaatst: ${msg.url}`);
-    console.log(`[updates] ${interaction.user.tag} plaatste: (${category}): ${text}`);
-  } catch (e) {
-    await interaction.editReply(`❌ Kon de update niet plaatsen: ${e.message}`);
-  }
-}
-
-async function postNew(client) {
-  try {
-    const channel = await client.channels.fetch(CHANNEL_ID);
-    // Wat staat er al? (beschrijvingen van berichten van de bot)
-    const recent = await channel.messages.fetch({ limit: 100 });
-    const posted = new Set(recent
-      .filter((m) => m.author.id === client.user.id)
-      .map((m) => m.embeds[0]?.description)
-      .filter(Boolean));
-    const todo = updates.filter((u) => !posted.has(textOf(u)));
-    if (!todo.length) return console.log('[updates] Geen nieuwe updates');
-
-    const author = await client.users.fetch(AUTHOR_ID).catch(() => null);
-    for (const u of todo) {
-      await channel.send({ embeds: [updateEmbed(textOf(u), author)] });
-      console.log(`[updates] Geplaatst: ${textOf(u)}`);
-    }
-  } catch (e) {
-    console.warn('[updates] Kon updates niet plaatsen:', e.message);
-  }
-}
+const field = (id, label, style, max, required, placeholder, value) => {
+  const input = new TextInputBuilder().setCustomId(id).setLabel(label).setStyle(style)
+    .setMaxLength(max).setRequired(required).setPlaceholder(placeholder);
+  if (value) input.setValue(value);
+  return new ActionRowBuilder().addComponents(input);
+};
 
 module.exports = (client) => {
-  client.once(Events.ClientReady, () => postNew(client));
   client.on(Events.InteractionCreate, async (interaction) => {
+    const id = interaction.isChatInputCommand() ? interaction.commandName : interaction.customId;
+    if (!['changelog', 'cl_publish', 'cl_add', 'cl_cancel', 'cl_add_form', 'cl_publish_form'].includes(id)) return;
     try {
-      if (interaction.isChatInputCommand() && interaction.commandName === 'changelog') await openForm(interaction);
-      else if (interaction.isModalSubmit() && interaction.customId === 'changelog_form') await submitForm(interaction);
+      if (!isAdmin(interaction.user)) {
+        return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
+      }
+
+      // /changelog: voorbeeld met knoppen
+      if (id === 'changelog') return interaction.reply({ ...preview(interaction.guild), flags: MessageFlags.Ephemeral });
+
+      if (id === 'cl_cancel') {
+        return interaction.update({ content: '❌ Geannuleerd. Er is niets geplaatst.', embeds: [], components: [], attachments: [] });
+      }
+
+      // Zelf een regel toevoegen
+      if (id === 'cl_add') {
+        return interaction.showModal(new ModalBuilder().setCustomId('cl_add_form').setTitle('➕ Regel toevoegen').addComponents(
+          field('kopje', 'Kopje', TextInputStyle.Short, 40, true, 'Bijv. 🎫 Tickets, 🎮 Server, ⚙️ Bot'),
+          field('tekst', 'Wat is er aangepast?', TextInputStyle.Paragraph, 300, true, 'Bijv. Het ticketpaneel heeft een nieuwe banner'),
+        ));
+      }
+      if (id === 'cl_add_form') {
+        const st = loadState();
+        st.custom = st.custom ?? [];
+        st.custom.push({
+          id: `eigen-${Date.now().toString(36)}`,
+          section: interaction.fields.getTextInputValue('kopje').trim(),
+          text: interaction.fields.getTextInputValue('tekst').trim().replace(/[.]$/, ''),
+        });
+        saveState(st);
+        return interaction.update(preview(interaction.guild));
+      }
+
+      // Publiceren: eerst een titel vragen
+      if (id === 'cl_publish') {
+        if (!openItems().length) return interaction.reply({ content: '📭 Er is niets om te publiceren.', flags: MessageFlags.Ephemeral });
+        return interaction.showModal(new ModalBuilder().setCustomId('cl_publish_form').setTitle(`✅ ${nextVersion()} publiceren`).addComponents(
+          field('titel', 'Titel van de update', TextInputStyle.Short, 80, true, 'Bijv. 🎫 Update: tickets en partners', DEFAULT_TITLE),
+        ));
+      }
+      if (id === 'cl_publish_form') {
+        const list = openItems();
+        if (!list.length) return interaction.update({ content: '📭 Deze update is al geplaatst.', embeds: [], components: [], attachments: [] });
+        const channel = await interaction.client.channels.fetch(CHANNEL_ID).catch(() => null);
+        if (!channel) return interaction.reply({ content: '❌ Ik kan het changelogkanaal niet vinden.', flags: MessageFlags.Ephemeral });
+        const version = nextVersion();
+        const title = interaction.fields.getTextInputValue('titel').trim();
+        const msg = await channel.send({ embeds: [buildEmbed(interaction.guild, list, title)], files: [banner()] });
+        const st = loadState();
+        st.published.push({ version, title, at: Date.now(), by: interaction.user.id, ids: list.map((i) => i.id) });
+        saveState(st);
+        console.log(`[changelog] ${version} gepubliceerd door ${interaction.user.tag}`);
+        return interaction.update({ content: `✅ Changelog **${version}** is gepubliceerd: ${msg.url}`, embeds: [], components: [], attachments: [] });
+      }
     } catch (e) {
-      console.error('[updates]', e);
+      console.error('[changelog]', e);
+      const m = { content: '❌ Er ging iets mis met de changelog.', flags: MessageFlags.Ephemeral };
+      if (interaction.replied || interaction.deferred) interaction.followUp(m).catch(() => {});
+      else interaction.reply(m).catch(() => {});
     }
   });
 };
