@@ -25,7 +25,7 @@ const command = new SlashCommandBuilder()
   .setDescription('Status van de verlenging bij Bot-Hosting')
   .toJSON();
 
-module.exports = (client, ownerIds) => {
+module.exports = (client, { notifyIds, allowedIds }) => {
   const reminderEmbed = () => new EmbedBuilder()
     .setColor('#FEE75C')
     .setTitle('🔔  Vergeet niet te verlengen!')
@@ -56,7 +56,7 @@ module.exports = (client, ownerIds) => {
   // Stuurt de herinnering als DM naar alle eigenaren; true als het bij minstens één lukte
   async function sendReminder() {
     let sent = 0;
-    for (const id of ownerIds) {
+    for (const id of notifyIds) {
       try {
         const user = await client.users.fetch(id);
         await user.send({ embeds: [reminderEmbed()], components: buttons() });
@@ -84,7 +84,7 @@ module.exports = (client, ownerIds) => {
   });
 
   client.on(Events.InteractionCreate, async (interaction) => {
-    const isOwner = ownerIds.includes(interaction.user.id);
+    const isOwner = allowedIds.includes(interaction.user.id);
 
     // /verlengen: status + knoppen
     if (interaction.isChatInputCommand() && interaction.commandName === 'verlengen') {

@@ -29,9 +29,11 @@ const commands = [
   renewReminder.command,
 ];
 
-// Verlengingsherinnering: DM alleen naar deze gebruiker (ook de enige die /verlengen en de knoppen kan gebruiken)
-const RENEW_REMINDER_IDS = ['1506618917324460114'];
-renewReminder(client, RENEW_REMINDER_IDS);
+// Verlengingsherinnering
+renewReminder(client, {
+  notifyIds: ['1506618917324460114'], // krijgt de DM-herinnering
+  allowedIds: ['1057307298894196756', '1506618917324460114'], // mag /verlengen en de knoppen gebruiken
+});
 
 // Zoekt het deployment-id op als het niet is ingesteld
 async function getDeploymentId() {
