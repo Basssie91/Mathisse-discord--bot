@@ -5,6 +5,8 @@
 module.exports = {
   // ---- Kanalen en rollen (rechtermuisknop → ID kopiëren, met Ontwikkelaarsmodus aan) ----
   panelChannelId: '1516461284374216774', // kanaal waar het ticketpaneel staat
+  welcomeChannelId: '1516133257014546713', // welkomstberichten
+  rulesChannelId: '',      // (optioneel) regelskanaal, wordt genoemd in het welkomstbericht
   staffRoleId: '',         // ziet Vragen-tickets
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
   transcriptChannelId: '', // (optioneel) transcripts van gesloten tickets

@@ -18,7 +18,10 @@ Paneel met een uitklapmenu:
 Tickets hebben **🙋 Oppakken** en **🔒 Sluiten** (met verplichte reden). Bij sluiten komt er een HTML-transcript in het transcriptkanaal en in de DM van de maker.
 Alle instellingen (kanalen, rollen, eigenaar, vragen van de sollicitatie) staan in `src/config.js`. Bij elke start controleert de bot of het paneel er nog staat en plaatst het anders opnieuw; wordt het paneel verwijderd, dan zet de bot het meteen terug.
 
-**Let op:** zet in de Discord Developer Portal → Bot de **Message Content Intent** aan, anders start de bot niet.
+**Let op:** zet in de Discord Developer Portal → Bot de **Message Content Intent** en de **Server Members Intent** aan, anders start de bot niet.
+
+## Welkomstbericht
+Nieuwe leden krijgen een welkomstbericht met banner in het kanaal `welcomeChannelId` uit `src/config.js`.
 
 ## Verlengingsherinnering
 Het gratis plan van Bot-Hosting moet elke 4 dagen verlengd worden. De bot stuurt 3 dagen na de laatste verlenging een DM naar de gebruiker(s) in `notifyIds`, en daarna elke 12 uur tot iemand op **✅ Ik heb verlengd** klikt.

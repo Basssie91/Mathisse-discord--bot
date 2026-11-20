@@ -18,9 +18,10 @@ if (!TOKEN) {
 }
 
 // MessageContent is nodig zodat transcripts de tekst van berichten bevatten
-// (zet 'Message Content Intent' aan in de Discord Developer Portal → Bot)
+// GuildMembers is nodig voor het welkomstbericht
+// (zet 'Message Content Intent' en 'Server Members Intent' aan in de Discord Developer Portal → Bot)
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
 const renewReminder = require('./renewReminder');
@@ -38,6 +39,9 @@ const commands = [
 require('./src/tickets')(client);
 require('./src/applications')(client);
 require('./src/partners')(client);
+
+// Welkomstbericht voor nieuwe leden
+require('./src/welcome')(client);
 
 // Updates automatisch in het updatekanaal plaatsen
 require('./src/updates')(client);
