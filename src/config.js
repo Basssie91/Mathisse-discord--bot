@@ -22,6 +22,10 @@ module.exports = {
   // Beheerders: mogen /changelog gebruiken en sollicitaties/partneraanvragen afhandelen
   adminIds: ['1057307298894196756', '1506618917324460114'],
 
+  // /opruimen: deze rollen en personen mogen berichten verwijderen
+  purgeRoleIds: ['1516133255898730509'],
+  purgeUserIds: ['1057307298894196756', '1506618917324460114'],
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

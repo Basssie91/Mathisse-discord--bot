@@ -33,6 +33,7 @@ const commands = [
     .toJSON(),
   renewReminder.command,
   require('./src/updates').command,
+  require('./src/purge').command,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag
@@ -48,6 +49,9 @@ require('./src/rules')(client);
 
 // Updates automatisch in het updatekanaal plaatsen
 require('./src/updates')(client);
+
+// /opruimen
+require('./src/purge')(client);
 
 // Verlengingsherinnering
 renewReminder(client, {

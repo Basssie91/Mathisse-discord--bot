@@ -37,6 +37,7 @@ const items = [
   { id: 'welkom-rol', section: '👋 Welkom', text: 'Nieuwe leden krijgen bij het joinen **automatisch een rol**' },
   { id: 'regels', section: '📜 Regels', text: 'De **serverregels** staan in het regelskanaal en komen automatisch terug als ze verwijderd worden' },
   { id: 'cmd-changelog', section: '⌨️ Commando\'s', text: 'Nieuw: **/changelog** om updates zoals deze te plaatsen' },
+  { id: 'cmd-opruimen', section: '⌨️ Commando\'s', text: 'Nieuw: **/opruimen** om berichten te verwijderen, eventueel alleen van één persoon' },
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
