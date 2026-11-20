@@ -9,7 +9,7 @@ module.exports = {
   staffRoleId: '',         // ziet Vragen-tickets, wordt gegeven bij geaccepteerde sollicitatie
   bestuurRoleId: '',       // ziet Vragen- en Bestuur-tickets
   transcriptChannelId: '', // (optioneel) transcripts van gesloten tickets
-  partnerChannelId: '',    // (optioneel) geaccepteerde partners
+  partnerChannelId: '1571121191614283919', // (optioneel) geaccepteerde partners
   partnerRoleId: '',       // (optioneel) rol voor partners
   extraStaffRoleId: '',    // (optioneel) tweede keuze bij accepteren sollicitatie
 

@@ -29,6 +29,7 @@ const updates = [
   ['Commands', 'Nieuw command /changelog om zelf een update in dit kanaal te plaatsen.'],
   ['Updates', 'Bovenin elke update staat nu de datum van die dag.'],
   ['Tickets', 'Vragen- en Bestuur-tickets komen nu elk in hun eigen categorie.'],
+  ['Partners', 'Geaccepteerde partners worden nu automatisch in het partnerkanaal geplaatst.'],
 ];
 
 const textOf = ([category, text]) => `(${category}): ${text}`;
