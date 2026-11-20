@@ -1,34 +1,28 @@
 // Suggestiepaneel: leden dienen via een knop een suggestie in, iedereen stemt met 👍/👎,
 // de beheerders (Bas en Mathisse) keuren goed of af. Elke suggestie krijgt een eigen draadje om over te praten.
 // Het paneel staat altijd onderaan, wordt bij elke start gecontroleerd en komt terug als het verwijderd wordt.
-const path = require('node:path');
 const {
   Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags,
-  ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder,
+  ModalBuilder, TextInputBuilder, TextInputStyle,
 } = require('discord.js');
 const cfg = require('./config');
 const { load, save } = require('./store');
 
 const FILE = 'suggestions.json';
 const PANEL_TITLE = '💡  SUGGESTIES';
-const BANNER_FILE = 'banner.png';
-const BANNER_PATH = path.join(__dirname, '..', 'assets', BANNER_FILE);
 
 const data = () => load(FILE, { count: 0, items: {}, panelId: null });
 // Goedkeuren/afwijzen: alleen de beheerders (Bas en Mathisse)
 const isStaff = (m) => cfg.adminIds.includes(m.id);
 
 // ---------- Paneel (staat altijd onderaan) ----------
-function panel(guild) {
+// Klein paneel, zodat de suggesties erboven goed zichtbaar blijven
+function panel() {
   return {
     embeds: [new EmbedBuilder()
       .setColor(cfg.color)
-      .setAuthor({ name: guild.name, iconURL: guild.iconURL({ size: 128 }) ?? undefined })
       .setTitle(PANEL_TITLE)
-      .setDescription('Heb je een idee om de server beter te maken?\nKlik op de knop hieronder en dien je suggestie in!')
-      .setImage(`attachment://${BANNER_FILE}`)
-      .setFooter({ text: `${guild.name} • Suggesties` })],
-    files: [new AttachmentBuilder(BANNER_PATH, { name: BANNER_FILE })],
+      .setDescription('Heb je een idee voor de server? Klik op de knop!')],
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('sug_new').setLabel('Suggestie indienen').setEmoji('💡').setStyle(ButtonStyle.Primary),
     )],
@@ -43,7 +37,7 @@ async function refreshPanel(channel) {
   d.panelId = null; // zodat het verwijderen hieronder niet als "paneel verwijderd" telt
   save(FILE, d);
   for (const m of old.values()) await m.delete().catch(() => {});
-  const msg = await channel.send(panel(channel.guild));
+  const msg = await channel.send(panel());
   const d2 = data();
   d2.panelId = msg.id;
   save(FILE, d2);
@@ -56,7 +50,7 @@ async function checkPanel(client) {
     const last = (await channel.messages.fetch({ limit: 1 })).first();
     const isPanel = last && last.author.id === client.user.id && last.embeds[0]?.title === PANEL_TITLE;
     if (isPanel) {
-      await last.edit({ ...panel(channel.guild), attachments: [] });
+      await last.edit({ ...panel(), attachments: [] });
       const d = data(); d.panelId = last.id; save(FILE, d);
       console.log('[suggestie] Paneel bijgewerkt');
     } else {
