@@ -23,6 +23,8 @@ if (!TOKEN) {
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
+// De bot heeft veel onderdelen die elk naar dezelfde gebeurtenissen luisteren; dat is bewust (geen geheugenlek)
+client.setMaxListeners(50);
 
 // Onderhoud (/onderhoud): moet als eerste, zodat het interacties van leden kan tegenhouden
 require('./src/maintenance')(client);
