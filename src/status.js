@@ -1,5 +1,5 @@
 // Botstatus: één bericht in het statuskanaal dat de bot zelf bijwerkt.
-// 🟢 Online  •  🔄 Herstarten  •  🔴 Offline  •  ⚠️ Onverwacht offline geweest (bv. crash of server uit)
+// 🟢 Online  •  🟠 Onderhoud  •  🔄 Herstarten  •  🔴 Offline  •  ⚠️ Onverwacht offline geweest (bv. crash of server uit)
 // Elke minuut wordt "laatst gecontroleerd" bijgewerkt. Stond de bot uit zonder netjes af te sluiten,
 // dan ziet hij dat bij de volgende start en zet hij de storing in de geschiedenis.
 // De geschiedenis begint bij elke (her)start opnieuw (max. 8 regels).
@@ -13,6 +13,7 @@ const STATES = {
   online: { color: '#57F287', label: '🟢  ONLINE', text: 'De bot is online en werkt.' },
   restarting: { color: '#FEE75C', label: '🔄  HERSTARTEN', text: 'De bot wordt herstart en is zo weer terug.' },
   offline: { color: '#ED4245', label: '🔴  OFFLINE', text: 'De bot is offline.' },
+  maintenance: { color: '#E67E22', label: '🟠  ONDERHOUD', text: 'De bot is online, maar staat in onderhoud. Sommige functies werken even niet.' },
 };
 
 let client = null;
@@ -29,7 +30,7 @@ function addHistory(text) {
 function buildEmbed() {
   const s = STATES[state.status] ?? STATES.offline;
   const lines = [s.text, ''];
-  if (state.status === 'online') {
+  if (['online', 'maintenance'].includes(state.status)) {
     lines.push(`⏱️ Online sinds ${t(state.since)} (${t(state.since, 'R')})`);
     lines.push(`📶 Ping: **${client?.ws?.ping >= 0 ? `${client.ws.ping} ms` : '...'}**`);
     lines.push(`🔁 Laatst gecontroleerd ${t(state.lastSeen, 'R')}`);
@@ -68,7 +69,7 @@ async function render() {
 async function set(status, historyText) {
   state.status = status;
   state.since = Date.now();
-  state.clean = status !== 'online'; // netjes afgesloten of herstart aangekondigd
+  state.clean = !['online', 'maintenance'].includes(status); // netjes afgesloten of herstart aangekondigd
   if (historyText) addHistory(historyText);
   persist();
   await render();
@@ -102,7 +103,8 @@ module.exports = (c) => {
       addHistory('🟢 Weer online');
     }
     state.lastSeen = now;
-    await set('online', null);
+    // Stond onderhoud aan? Dan meteen weer 🟠 ONDERHOUD tonen
+    await set(require('./maintenance').isOn() ? 'maintenance' : 'online', null);
 
     setInterval(() => {
       state.lastSeen = Date.now();
@@ -129,4 +131,5 @@ module.exports = (c) => {
 
 // Voor /restart: 🔄 Herstarten tonen voordat de bot stopt
 module.exports.restarting = (user) => set('restarting', `🔄 Herstart door ${user ? `<@${user.id}>` : 'het systeem'}`);
-module.exports.failed = (why) => set('online', `❌ Herstart mislukt: ${String(why).slice(0, 80)}`);
+module.exports.failed = (why) => set(require('./maintenance').isOn() ? 'maintenance' : 'online', `❌ Herstart mislukt: ${String(why).slice(0, 80)}`);
+module.exports.maintenance = (on, user) => set(on ? 'maintenance' : 'online', on ? `🟠 Onderhoud aangezet door <@${user.id}>` : `🟢 Onderhoud uitgezet door <@${user.id}>`);

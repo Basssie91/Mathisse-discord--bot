@@ -26,6 +26,7 @@ const ACCESS = {
   'content-lijst': () => who(admins()),
   verlengen: () => who(admins()),
   restart: () => who(admins()),
+  onderhoud: () => who(admins()),
 };
 
 // Korte uitleg per command (anders de omschrijving van het command zelf)
@@ -39,6 +40,7 @@ const SHORT = {
   'content-lijst': 'Contentmeldingen beheren',
   verlengen: 'Verlenging bij Bot-Hosting',
   restart: 'Bot herstarten',
+  onderhoud: 'Onderhoud aan/uit',
 };
 
 // Groep op basis van wie het mag: iedereen / team (met rol) / beheerders (alleen personen)

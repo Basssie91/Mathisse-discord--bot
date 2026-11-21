@@ -24,6 +24,9 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
+// Onderhoud (/onderhoud): moet als eerste, zodat het interacties van leden kan tegenhouden
+require('./src/maintenance')(client);
+
 const renewReminder = require('./renewReminder');
 
 const commands = [
@@ -39,6 +42,7 @@ const commands = [
   require('./src/content').listCommand,
   require('./src/staffUpdate').command,
   require('./src/help').command,
+  require('./src/maintenance').command,
 ];
 
 // Ticketsysteem: menu met Vragen, Bestuur, Staff sollicitatie en Partner aanvraag
