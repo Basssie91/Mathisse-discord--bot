@@ -9,7 +9,7 @@ Discord-bot (discord.js v14) gehost op Bot-Hosting.
 
 - `/opruimen` – berichten verwijderen (1-100, optioneel van één persoon). Voor `purgeRoleIds` en `purgeUserIds` in `src/config.js`.
 - `/giveaway` – opent een formulier (prijs, aantal winnaars 1-10, duur 1 uur t/m 4 weken, uitleg) en start de giveaway in `giveawayChannelId`. Voor `adminIds` en `giveawayRoleIds`.
-- `/content` – formulier om een YouTuber of streamer toe te voegen (link + wie taggen). `/content-lijst` – overzicht en verwijderen. Alleen `adminIds`.
+- `/content` – formulier om een YouTuber of streamer toe te voegen (link; meldingen taggen altijd de rol 📡 Content). `/content-lijst` – overzicht en verwijderen. Alleen `adminIds`.
 - `/staff-update` – formulier (persoon, Aangenomen/Ontslagen/Promotie/Degraderen, rol, reden) → bericht in `staffUpdateChannelId`. Voor `adminIds` en `staffUpdateRoleIds`.
 - `/changelog` – changelog bekijken, regels toevoegen en publiceren (alleen beheerders uit `src/config.js`).
 
@@ -63,7 +63,7 @@ In `countingChannelId`: steeds het volgende getal, niet twee keer achter elkaar,
 In `statusChannelId` staat één bericht dat de bot zelf bijwerkt: 🟢 online (met ping en "laatst gecontroleerd", elke minuut), 🔄 herstarten (via /restart) en 🔴 offline (bij netjes stoppen of een crash). Stond de bot uit zonder netjes af te sluiten, dan komt er bij de volgende start een ⚠️ storing in de geschiedenis.
 
 ## Contentmeldingen
-Zoals Pingcord: elke 3 minuten controleert de bot de kanalen uit `/content`. YouTube via de openbare RSS-feed (nieuwe video's), Twitch via decapi.me en Kick via de openbare kick.com-API (live gaan). Optioneel een rol (of @everyone) die getagd wordt.
+Zoals Pingcord: elke 3 minuten controleert de bot de kanalen uit `/content`. YouTube via de openbare RSS-feed (nieuwe video's), Twitch via decapi.me en Kick via de openbare kick.com-API (live gaan). Elke melding tagt de meldingsrol 📡 Content uit het rollenpaneel.
 
 ## Staff-overzicht
 In `staffOverviewChannelId` staat een embed met alle commands en wie ze mag gebruiken. Wordt bij elke start opnieuw opgebouwd uit de geregistreerde commands (zet bij een nieuw command de rechten in `ACCESS` in `src/staffOverview.js`) en teruggezet als het weg is.
@@ -76,3 +76,5 @@ In `suggestionChannelId`: paneel met knop **💡 Suggestie indienen** (staat alt
 
 ## Rollenpaneel
 In `selfRolesChannelId`: knoppen voor de meldingsrollen 📋 Changelog, 📡 Content en 📢 Mededelingen (aan/uit). De bot maakt de rollen zelf aan zonder rechten (rolicoontje vanaf boostlevel 2, de emoji staat ook in de naam). Paneel en rollen worden bij elke start gecontroleerd en teruggezet.
+
+Bij het publiceren van een changelog wordt de rol 📋 Changelog getagd. 📢 Mededelingen tag je zelf.

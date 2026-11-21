@@ -1,5 +1,5 @@
 // Contentmeldingen (zoals Pingcord): nieuwe YouTube-video's en livestreams op Twitch en Kick.
-// /content opent een formulier (link + wie taggen)  •  /content-lijst: overzicht en verwijderen
+// /content opent een formulier (link; de rol 📡 Content wordt altijd getagd)  •  /content-lijst: overzicht en verwijderen
 // Werkt zonder API-sleutels:
 //  - YouTube: openbare RSS-feed van het kanaal
 //  - Twitch: decapi.me (uptime / titel / game)
@@ -7,7 +7,6 @@
 const {
   Events, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   StringSelectMenuBuilder, MessageFlags, ModalBuilder, LabelBuilder, TextInputBuilder, TextInputStyle,
-  RoleSelectMenuBuilder,
 } = require('discord.js');
 const cfg = require('./config');
 const { load, save, newId } = require('./store');
@@ -114,8 +113,10 @@ async function announce(client, s, data) {
   const channel = await client.channels.fetch(cfg.contentChannelId).catch(() => null);
   if (!channel) return console.warn('[content] Contentkanaal niet gevonden');
   const p = PLATFORM[s.platform];
-  const ping = s.pingRoleId ? (s.pingRoleId === channel.guild.id ? '@everyone ' : `<@&${s.pingRoleId}> `) : '';
-  const allowedMentions = s.pingRoleId === channel.guild.id ? { parse: ['everyone'] } : { roles: s.pingRoleId ? [s.pingRoleId] : [] };
+  // Altijd de meldingsrol 📡 Content taggen (uit het rollenpaneel)
+  const roleId = require('./selfRoles').roleId('content');
+  const ping = roleId ? `<@&${roleId}> ` : '';
+  const allowedMentions = { roles: roleId ? [roleId] : [] };
 
   if (s.platform === 'youtube') {
     const link = `https://www.youtube.com/watch?v=${data.id}`;
@@ -192,26 +193,16 @@ const listCommand = new SlashCommandBuilder()
   .setDMPermission(false)
   .toJSON();
 
-let everyoneId = null; // id van @everyone (= server-id), voor de weergave
-const pingText = (s) => (s.pingRoleId ? (s.pingRoleId === everyoneId ? '@everyone' : `<@&${s.pingRoleId}>`) : 'niemand');
-const line = (s) => `${PLATFORM[s.platform].emoji} **${s.name}** • [${PLATFORM[s.platform].label}](${s.url}) • tag: ${pingText(s)}`;
+const line = (s) => `${PLATFORM[s.platform].emoji} **${s.name}** • [${PLATFORM[s.platform].label}](${s.url})`;
 
 function contentForm() {
   return new ModalBuilder()
     .setCustomId('content_form')
     .setTitle('📡 Content toevoegen')
     .addLabelComponents(
-      new LabelBuilder().setLabel('Link naar het kanaal').setDescription('YouTube, Twitch of Kick')
+      new LabelBuilder().setLabel('Link naar het kanaal').setDescription('YouTube, Twitch of Kick • de rol 📡 Content wordt automatisch getagd')
         .setTextInputComponent(new TextInputBuilder().setCustomId('link').setStyle(TextInputStyle.Short)
           .setPlaceholder('Bijv. youtube.com/@naam of twitch.tv/naam').setMaxLength(200).setRequired(true)),
-      new LabelBuilder().setLabel('Wie wordt er getagd bij een melding?')
-        .setStringSelectMenuComponent(new StringSelectMenuBuilder().setCustomId('tag').setRequired(true).addOptions(
-          { label: 'Niemand', value: 'none', emoji: '🔕', default: true },
-          { label: '@everyone', value: 'everyone', emoji: '📢' },
-          { label: 'Een rol (kies hieronder)', value: 'role', emoji: '🏷️' },
-        )),
-      new LabelBuilder().setLabel('Rol').setDescription('Alleen als je hierboven "Een rol" kiest')
-        .setRoleSelectMenuComponent(new RoleSelectMenuBuilder().setCustomId('rol').setRequired(false).setMaxValues(1)),
     );
 }
 
@@ -235,14 +226,6 @@ async function onSubmit(interaction) {
   const link = parseLink(interaction.fields.getTextInputValue('link').trim());
   if (!link) return interaction.reply({ content: '❌ Dat is geen YouTube-, Twitch- of Kick-link.', flags: MessageFlags.Ephemeral });
 
-  const tag = interaction.fields.getStringSelectValues('tag')[0] ?? 'none';
-  let pingRoleId = null;
-  if (tag === 'everyone') pingRoleId = interaction.guild.id;
-  if (tag === 'role') {
-    try { pingRoleId = interaction.fields.getSelectedRoles('rol')?.first()?.id ?? null; } catch { pingRoleId = null; }
-    if (!pingRoleId) return interaction.reply({ content: '❌ Je koos "Een rol", maar hebt geen rol gekozen. Probeer het opnieuw.', flags: MessageFlags.Ephemeral });
-  }
-
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   let s;
   try {
@@ -255,7 +238,6 @@ async function onSubmit(interaction) {
     return interaction.editReply(`ℹ️ **${s.name}** staat er al in.`);
   }
   s.id = newId();
-  s.pingRoleId = pingRoleId;
   l.push(s);
   store(l);
   console.log(`[content] ${interaction.user.tag} voegde ${s.name} (${s.platform}) toe`);
@@ -276,7 +258,6 @@ async function onRemove(interaction) {
 
 module.exports = (client) => {
   client.once(Events.ClientReady, () => {
-    everyoneId = client.channels.cache.get(cfg.contentChannelId)?.guild?.id ?? null;
     setTimeout(() => checkAll(client), 15000);
     setInterval(() => checkAll(client), CHECK_EVERY).unref();
   });

@@ -40,6 +40,7 @@ const items = [
   { id: 'regels', section: '📜 Regels', text: 'De **serverregels** staan in het regelskanaal en komen automatisch terug als ze verwijderd worden' },
   { id: 'suggesties', section: '💡 Suggesties', text: 'Nieuw **suggestiepaneel**! Dien je idee in, stem met 👍/👎 en praat erover in het draadje' },
   { id: 'rollenpaneel', section: '🔔 Meldingen', text: 'Nieuw **rollenpaneel**: kies zelf of je meldingen wilt voor changelog, content en mededelingen' },
+  { id: 'rollen-tag', section: '🔔 Meldingen', text: 'Bij een nieuwe changelog of contentmelding wordt de bijbehorende **meldingsrol getagd**' },
   { id: 'cmd-changelog', section: '⌨️ Commando\'s', text: 'Nieuw: **/changelog** om updates zoals deze te plaatsen' },
   { id: 'cmd-opruimen', section: '⌨️ Commando\'s', text: 'Nieuw: **/opruimen** om berichten te verwijderen, eventueel alleen van één persoon' },
   { id: 'giveaways', section: '🎁 Giveaways', text: 'Nieuw: **/giveaway**! Doe mee met één klik op **🎉 Meedoen**, de winnaars worden willekeurig gekozen' },
@@ -177,7 +178,14 @@ module.exports = (client) => {
         if (!channel) return interaction.reply({ content: '❌ Ik kan het changelogkanaal niet vinden.', flags: MessageFlags.Ephemeral });
         const version = nextVersion();
         const title = interaction.fields.getTextInputValue('titel').trim();
-        const msg = await channel.send({ embeds: [buildEmbed(interaction.guild, list, title)], files: [banner()] });
+        // Meldingsrol 📋 Changelog taggen (uit het rollenpaneel)
+        const roleId = require('./selfRoles').roleId('changelog');
+        const msg = await channel.send({
+          content: roleId ? `<@&${roleId}>` : undefined,
+          embeds: [buildEmbed(interaction.guild, list, title)],
+          files: [banner()],
+          allowedMentions: { roles: roleId ? [roleId] : [] },
+        });
         const st = loadState();
         st.published.push({ version, title, at: Date.now(), by: interaction.user.id, ids: list.map((i) => i.id) });
         saveState(st);
