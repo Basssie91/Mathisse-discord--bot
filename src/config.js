@@ -86,10 +86,7 @@ module.exports = {
       id: 'vragen', label: 'Vragen', emoji: '❓', description: 'Heb je een vraag? Wij helpen je graag.',
       team: ['staff', 'bestuur'], categoryId: '1543971187560808570',
       fields: [
-        { id: 'onderwerp', label: 'Waar gaat je vraag over? (kort)', style: 'short', required: true, placeholder: 'Bijv. rollen, een ander lid, een probleem...' },
         { id: 'vraag', label: 'Beschrijf je vraag zo duidelijk mogelijk', style: 'long', required: true, min: 20, placeholder: 'Wat is er aan de hand, wanneer gebeurde het en wat wil je van ons?' },
-        { id: 'geprobeerd', label: 'Wat heb je zelf al geprobeerd?', style: 'long', required: false, placeholder: 'Bijv. regels gelezen, al iemand anders gevraagd...' },
-        { id: 'wie', label: 'Gaat het over iemand? Zo ja, wie?', style: 'short', required: false, placeholder: 'Naam of @gebruikersnaam' },
       ],
     },
     {
@@ -97,10 +94,7 @@ module.exports = {
       team: ['bestuur'], categoryId: '1545140372995309568',
       fields: [
         { id: 'onderwerp', label: 'Onderwerp (kort)', style: 'short', required: true, placeholder: 'Bijv. klacht over staff, samenwerking, privézaak...' },
-        { id: 'uitleg', label: 'Beschrijf het zo volledig mogelijk', style: 'long', required: true, min: 30, placeholder: 'Wat is er gebeurd, wanneer, en wat verwacht je van het bestuur?' },
-        { id: 'wie', label: 'Wie zijn erbij betrokken?', style: 'short', required: false, placeholder: 'Namen of @gebruikersnamen' },
-        { id: 'bewijs', label: 'Bewijs of links', style: 'long', required: false, placeholder: 'Links naar berichten; screenshots kun je daarna in het ticket sturen' },
-        { id: 'urgentie', label: 'Hoe dringend is het?', style: 'short', required: false, placeholder: 'Laag / Gemiddeld / Hoog' },
+        { id: 'uitleg', label: 'Beschrijf het zo volledig mogelijk', style: 'long', required: true, min: 20, placeholder: 'Wat is er gebeurd, wanneer, en wat verwacht je van het bestuur?' },
       ],
     },
     {
