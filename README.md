@@ -73,3 +73,6 @@ Heeft iemand één van de rollen in `staffTriggerRoleIds`, dan krijgt hij `staff
 
 ## Suggesties
 In `suggestionChannelId`: paneel met knop **💡 Suggestie indienen** (staat altijd onderaan, komt terug als het weg is). Iedereen stemt met 👍/👎, elke suggestie krijgt een draadje, alleen de beheerders (`adminIds`) keuren goed of af. Leden kunnen in het kanaal zelf niet typen, wel in de draadjes.
+
+## Rollenpaneel
+In `selfRolesChannelId`: knoppen voor de meldingsrollen 📋 Changelog, 📡 Content en 📢 Mededelingen (aan/uit). De bot maakt de rollen zelf aan zonder rechten (rolicoontje vanaf boostlevel 2, de emoji staat ook in de naam). Paneel en rollen worden bij elke start gecontroleerd en teruggezet.

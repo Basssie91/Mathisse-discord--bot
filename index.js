@@ -82,6 +82,9 @@ require('./src/help')(client);
 // Suggestiepaneel
 require('./src/suggestions')(client);
 
+// Rollenpaneel (meldingsrollen)
+require('./src/selfRoles')(client);
+
 // Staff-overzicht van alle commands en rechten
 require('./src/staffOverview')(client);
 

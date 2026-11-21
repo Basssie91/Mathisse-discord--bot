@@ -66,6 +66,9 @@ module.exports = {
   // Suggesties
   suggestionChannelId: '1516133258088288352',
 
+  // Rollenpaneel (meldingsrollen kiezen)
+  selfRolesChannelId: '1516133257014546715',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 
