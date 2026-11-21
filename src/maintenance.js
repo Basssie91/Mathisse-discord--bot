@@ -23,9 +23,8 @@ const command = new SlashCommandBuilder()
   .toJSON();
 
 function setPresence(client, on) {
-  client.user?.setPresence(on
-    ? { status: 'dnd', activities: [{ type: ActivityType.Custom, name: 'custom', state: '🔧 Onderhoud' }] }
-    : { status: 'online', activities: [] });
+  if (on) client.user?.setPresence({ status: 'dnd', activities: [{ type: ActivityType.Custom, name: 'custom', state: '🔧 Onderhoud' }] });
+  else require('./presence').update(client); // weer de ledenteller tonen
 }
 
 // Woordketting en tellen op slot (en daarna precies terugzetten zoals het was)

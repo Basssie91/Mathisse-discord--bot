@@ -99,6 +99,9 @@ require('./src/promo')(client);
 // Staff-overzicht van alle commands en rechten
 require('./src/staffOverview')(client);
 
+// Ledenteller als status van de bot in de ledenlijst
+require('./src/presence')(client);
+
 // Botstatus in het statuskanaal
 const status = require('./src/status');
 status(client);
