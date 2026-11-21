@@ -34,7 +34,7 @@ function build(interaction) {
         name: '🎫 Tickets',
         value: [
           `Hulp nodig? Kies een onderwerp in het menu in ${ch(cfg.panelChannelId) ?? 'het ticketkanaal'}:`,
-          '❓ Vragen • 👑 Bestuur • 🛡️ Staff sollicitatie • 🤝 Partner aanvraag',
+          '❓ Vragen • 👑 Bestuur • 🖼️ Thumbnail • 🛡️ Staff sollicitatie • 🤝 Partner aanvraag',
         ].join('\n'),
       },
       {

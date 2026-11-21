@@ -81,6 +81,7 @@ function buildEmbed(client, guild) {
         `-# 🔑 ${teamRoles}`,
         '**Vragen** oppakken en sluiten',
         `**Bestuur** alleen ${who(roles([cfg.bestuurRoleId]))}`,
+        `**Thumbnail** ${who(roles([cfg.staffRoleId]))}`,
       ].join('\n').slice(0, 1024),
     },
     {

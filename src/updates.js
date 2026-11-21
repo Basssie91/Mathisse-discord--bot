@@ -29,6 +29,7 @@ const items = [
   { id: 'tickets-transcript', section: '🎫 Tickets', text: 'Bij het sluiten krijg je het hele gesprek als **transcript** in je DM' },
   { id: 'tickets-terug', section: '🎫 Tickets', text: 'Het ticketpaneel komt **automatisch terug** als het weg is' },
   { id: 'tickets-logs', section: '🎫 Tickets', text: 'Gesloten tickets komen met het **transcript** in het logkanaal, met een **📥 Download**-knop (ook in je DM)' },
+  { id: 'tickets-thumbnail', section: '🎫 Tickets', text: 'Nieuw in het ticketmenu: **🖼️ Thumbnail**! Vraag een thumbnail aan via een formulier' },
   { id: 'sollicitatie-formulier', section: '🛡️ Staff', text: '**Staff sollicitaties** gaan via een formulier in het ticketmenu' },
   { id: 'sollicitatie-kanaal', section: '🛡️ Staff', text: 'Sollicitaties komen in een **eigen kanaal** en worden door de beheerders afgehandeld' },
   { id: 'sollicitatie-rol', section: '🛡️ Staff', text: 'Bij accepteren kies je zelf **welke rol** iemand krijgt' },

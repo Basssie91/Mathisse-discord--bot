@@ -84,6 +84,17 @@ module.exports = {
   // categoryId: categorie waar de tickets van deze soort in komen
     { id: 'vragen', label: 'Vragen', emoji: '❓', description: 'Heb je een vraag? Wij helpen je graag.', team: ['staff', 'bestuur'], categoryId: '1543971187560808570' },
     { id: 'bestuur', label: 'Bestuur', emoji: '👑', description: 'Zaken die alleen voor het bestuur zijn.', team: ['bestuur'], categoryId: '1545140372995309568' },
+    {
+      id: 'thumbnail', label: 'Thumbnail', emoji: '🖼️', description: 'Een thumbnail laten maken? Vul het formulier in.',
+      team: ['staff'], categoryId: '1573733796098998443',
+      // Eigen vragen in het formulier (de eerste is het onderwerp)
+      fields: [
+        { id: 'kanaal', label: 'Wat is je YouTube-kanaal?', style: 'short', required: true, placeholder: 'Bijv. youtube.com/@naam' },
+        { id: 'opstaan', label: 'Wat moet er op de thumbnail staan?', style: 'long', required: true, placeholder: 'Tekst, personen, kleuren, sfeer...' },
+        { id: 'wereld', label: 'Ben je crimi of bovenwereld?', style: 'short', required: false, placeholder: 'Crimi / Bovenwereld' },
+        { id: 'extra', label: 'Extra info of voorbeelden?', style: 'long', required: false, placeholder: 'Links naar voorbeelden, deadline, ...' },
+      ],
+    },
     { id: 'staff', label: 'Staff sollicitatie', emoji: '🛡️', description: 'Solliciteren voor staff? Vul het formulier in.' },
     { id: 'partner', label: 'Partner aanvraag', emoji: '🤝', description: 'Partner worden met jouw server? Vul het formulier in.' },
   ],

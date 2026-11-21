@@ -63,6 +63,7 @@ async function postPanel(guild) {
       '',
       '❓ **Vragen** • Een vraag aan het team',
       '👑 **Bestuur** • Zaken voor het bestuur',
+      '🖼️ **Thumbnail** • Een thumbnail laten maken',
       '🛡️ **Staff sollicitatie** • Solliciteren voor het team',
       '🤝 **Partner aanvraag** • Partner worden met je server',
     ].join('\n'))
@@ -100,20 +101,28 @@ async function postPanel(guild) {
 
 // ---------- Ticket openen ----------
 async function openModal(interaction, type) {
-  await interaction.showModal(new ModalBuilder()
-    .setCustomId(`ticket_modal:${type.id}`)
-    .setTitle(`${type.label} ticket`)
-    .addComponents(new ActionRowBuilder().addComponents(
-      new TextInputBuilder().setCustomId('reden').setLabel('Waar gaat je ticket over?')
-        .setStyle(TextInputStyle.Paragraph).setPlaceholder('Beschrijf zo duidelijk mogelijk je vraag...')
-        .setMinLength(5).setMaxLength(1000).setRequired(true),
-    )));
+  const modal = new ModalBuilder().setCustomId(`ticket_modal:${type.id}`).setTitle(`${type.label} ticket`);
+  // Eigen vragen (bijv. Thumbnail) of de standaardvraag
+  const fields = type.fields ?? [{ id: 'reden', label: 'Waar gaat je ticket over?', style: 'long', required: true, placeholder: 'Beschrijf zo duidelijk mogelijk je vraag...', min: 5 }];
+  modal.addComponents(fields.slice(0, 5).map((f) => {
+    const input = new TextInputBuilder().setCustomId(f.id).setLabel(f.label.slice(0, 45))
+      .setStyle(f.style === 'short' ? TextInputStyle.Short : TextInputStyle.Paragraph)
+      .setMaxLength(f.style === 'short' ? 200 : 1000).setRequired(f.required);
+    if (f.placeholder) input.setPlaceholder(f.placeholder);
+    if (f.min) input.setMinLength(f.min);
+    return new ActionRowBuilder().addComponents(input);
+  }));
+  await interaction.showModal(modal);
 }
 
 async function createTicket(interaction, type) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const { guild, user } = interaction;
-  const reason = interaction.fields.getTextInputValue('reden');
+  // Antwoorden uit het formulier; het eerste antwoord is het onderwerp
+  const answers = (type.fields ?? [{ id: 'reden', label: 'Onderwerp' }])
+    .map((f) => ({ label: f.label, value: interaction.fields.getTextInputValue(f.id)?.trim() }))
+    .filter((a) => a.value);
+  const reason = answers[0]?.value ?? '-';
   const category = await getCategory(guild, type);
 
   const tag = `ticket:${type.id}:${user.id}`;
@@ -152,6 +161,7 @@ async function createTicket(interaction, type) {
       { name: '👤 Van', value: `${user}`, inline: true },
       { name: '🕒 Geopend', value: `<t:${Math.floor(Date.now() / 1000)}:t>`, inline: true },
       { name: '📝 Onderwerp', value: reason.slice(0, 1024) },
+      ...(type.fields ? answers.slice(1).map((a) => ({ name: a.label, value: a.value.slice(0, 1024) })) : []),
     )
     .setThumbnail(user.displayAvatarURL({ size: 128 }))
     .setFooter({ text: '🙋 Oppakken (team) • 🔒 Sluiten' });
