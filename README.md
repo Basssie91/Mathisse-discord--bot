@@ -51,7 +51,7 @@ npm start
 
 ## Changelog
 Elke wijziging aan de bot krijgt een regel in `src/updates.js` (met een vaste, unieke id).
-Met `/changelog` zie je een voorbeeld van alles wat nog niet geplaatst is, kun je zelf regels toevoegen (➕) en publiceer je de update (✅) in het changelogkanaal, met versienummer, kopjes en banner. De bot onthoudt wat al geplaatst is.
+Met `/changelog` zie je een voorbeeld van alles wat nog niet geplaatst is, kun je zelf regels toevoegen (➕) en publiceer je de update (✅) in het changelogkanaal, met versienummer, kopjes en banner. Na publiceren blijft de versie open: 🔁 Opnieuw publiceren vervangt het bericht. Pas met 🆕 afronden gaat de lijst leeg en begint de volgende versie.
 
 ## Woordketting
 In `wordChainChannelId`: elk woord begint met de laatste letter van het vorige, alleen Nederlandse woorden (OpenTaal-lijst, wordt bij de eerste start gedownload naar `data/`), geen dubbele woorden en niet twee keer achter elkaar. Berichten van terwijl de bot offline was worden na het opstarten alsnog verwerkt.

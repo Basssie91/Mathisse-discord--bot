@@ -3,7 +3,8 @@
 //  Elke wijziging aan de bot komt hieronder als regel bij (met een vaste, unieke id).
 //  Met /changelog zie je eerst een voorbeeld van alles wat nog niet geplaatst is,
 //  je kunt zelf regels toevoegen, en daarna kies je of je hem publiceert.
-//  De bot onthoudt welke regels al geplaatst zijn.
+//  Na publiceren blijft de versie open (opnieuw publiceren vervangt het bericht)
+//  tot je op "afronden" klikt; pas dan begint de volgende versie.
 // ============================================================
 const path = require('node:path');
 const {
@@ -59,14 +60,29 @@ const items = [
 ];
 
 const DEFAULT_TITLE = '🚀 Update';
-const loadState = () => store.load('changelog-state.json', { published: [], custom: [] });
+// published: afgeronde versies (die regels komen nooit meer terug)
+// current:   de versie die nu loopt; blijft staan na publiceren tot je zelf "Nieuwe versie beginnen" kiest
+function loadState() {
+  const st = store.load('changelog-state.json', { published: [], custom: [] });
+  st.custom ??= [];
+  // Eenmalig: de laatst geplaatste versie (v1.3) weer open zetten, zodat hij opnieuw geplaatst kan worden
+  if (!st.migratedCurrent) {
+    st.migratedCurrent = true;
+    if (!st.current && st.published.length) {
+      const last = st.published.pop();
+      st.current = { version: last.version, title: last.title, ids: last.ids, messageId: null, channelId: null };
+    }
+    store.save('changelog-state.json', st);
+  }
+  return st;
+}
 const saveState = (s) => store.save('changelog-state.json', s);
 const openItems = () => {
   const st = loadState();
   const done = new Set(st.published.flatMap((b) => b.ids));
-  return [...items, ...(st.custom ?? [])].filter((i) => !done.has(i.id));
+  return [...items, ...st.custom].filter((i) => !done.has(i.id));
 };
-const nextVersion = () => `v1.${loadState().published.length + 1}`;
+const nextVersion = () => loadState().current?.version ?? `v1.${loadState().published.length + 1}`;
 const isAdmin = (user) => cfg.adminIds.includes(user.id);
 
 // Volgorde van de kopjes: eerst serverdingen, commando's en bot als laatste
@@ -96,11 +112,17 @@ function buildEmbed(guild, list, title) {
 }
 const banner = () => new AttachmentBuilder(BANNER_PATH, { name: BANNER_FILE });
 
-const controls = () => [new ActionRowBuilder().addComponents(
-  new ButtonBuilder().setCustomId('cl_publish').setLabel('Publiceren').setEmoji('✅').setStyle(ButtonStyle.Success),
-  new ButtonBuilder().setCustomId('cl_add').setLabel('Regel toevoegen').setEmoji('➕').setStyle(ButtonStyle.Primary),
-  new ButtonBuilder().setCustomId('cl_cancel').setLabel('Annuleren').setEmoji('❌').setStyle(ButtonStyle.Secondary),
-)];
+function controls() {
+  const cur = loadState().current;
+  const live = Boolean(cur?.messageId);
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId('cl_publish').setLabel(live ? 'Opnieuw publiceren' : 'Publiceren').setEmoji(live ? '🔁' : '✅').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('cl_add').setLabel('Regel toevoegen').setEmoji('➕').setStyle(ButtonStyle.Primary),
+  );
+  if (cur) row.addComponents(new ButtonBuilder().setCustomId('cl_reset').setLabel(`${cur.version} afronden`).setEmoji('🆕').setStyle(ButtonStyle.Secondary));
+  row.addComponents(new ButtonBuilder().setCustomId('cl_cancel').setLabel('Annuleren').setEmoji('❌').setStyle(ButtonStyle.Secondary));
+  return [row];
+}
 
 function preview(guild) {
   const list = openItems();
@@ -108,8 +130,12 @@ function preview(guild) {
     return { content: '📭 Er zijn geen nieuwe updates. Klik op **➕ Regel toevoegen** om zelf iets te schrijven.', embeds: [], files: [], attachments: [], components: controls() };
   }
   return {
-    content: `👀 **Voorbeeld**: zo komt de changelog eruit te zien (${list.length} regel${list.length === 1 ? '' : 's'}). Alleen jij ziet dit.`,
-    embeds: [buildEmbed(guild, list, DEFAULT_TITLE)],
+    content: [
+      `👀 **Voorbeeld van ${nextVersion()}** (${list.length} regel${list.length === 1 ? '' : 's'}). Alleen jij ziet dit.`,
+      loadState().current?.messageId ? '-# Deze versie is al geplaatst. **🔁 Opnieuw publiceren** vervangt het oude bericht.' : null,
+      '-# De lijst blijft staan tot je op **🆕 afronden** klikt; dan begint de volgende versie.',
+    ].filter(Boolean).join('\n'),
+    embeds: [buildEmbed(guild, list, loadState().current?.title ?? DEFAULT_TITLE)],
     files: [banner()],
     attachments: [],
     components: controls(),
@@ -132,7 +158,7 @@ const field = (id, label, style, max, required, placeholder, value) => {
 module.exports = (client) => {
   client.on(Events.InteractionCreate, async (interaction) => {
     const id = interaction.isChatInputCommand() ? interaction.commandName : interaction.customId;
-    if (!['changelog', 'cl_publish', 'cl_add', 'cl_cancel', 'cl_add_form', 'cl_publish_form'].includes(id)) return;
+    if (!['changelog', 'cl_publish', 'cl_add', 'cl_cancel', 'cl_reset', 'cl_add_form', 'cl_publish_form'].includes(id)) return;
     try {
       if (!isAdmin(interaction.user)) {
         return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
@@ -168,7 +194,7 @@ module.exports = (client) => {
       if (id === 'cl_publish') {
         if (!openItems().length) return interaction.reply({ content: '📭 Er is niets om te publiceren.', flags: MessageFlags.Ephemeral });
         return interaction.showModal(new ModalBuilder().setCustomId('cl_publish_form').setTitle(`✅ ${nextVersion()} publiceren`).addComponents(
-          field('titel', 'Titel van de update', TextInputStyle.Short, 80, true, 'Bijv. 🎫 Update: tickets en partners', DEFAULT_TITLE),
+          field('titel', 'Titel van de update', TextInputStyle.Short, 80, true, 'Bijv. 🎫 Update: tickets en partners', loadState().current?.title ?? DEFAULT_TITLE),
         ));
       }
       if (id === 'cl_publish_form') {
@@ -187,10 +213,30 @@ module.exports = (client) => {
           allowedMentions: { roles: roleId ? [roleId] : [] },
         });
         const st = loadState();
-        st.published.push({ version, title, at: Date.now(), by: interaction.user.id, ids: list.map((i) => i.id) });
+        // Al eerder geplaatst? Dan het oude bericht weghalen (opnieuw publiceren vervangt het)
+        if (st.current?.messageId) {
+          const oldCh = await interaction.client.channels.fetch(st.current.channelId).catch(() => null);
+          await oldCh?.messages.delete(st.current.messageId).catch(() => {});
+        }
+        st.current = { version, title, at: Date.now(), by: interaction.user.id, ids: list.map((i) => i.id), messageId: msg.id, channelId: channel.id };
         saveState(st);
         console.log(`[changelog] ${version} gepubliceerd door ${interaction.user.tag}`);
-        return interaction.update({ content: `✅ Changelog **${version}** is gepubliceerd: ${msg.url}`, embeds: [], components: [], attachments: [] });
+        return interaction.update({
+          content: `✅ Changelog **${version}** is gepubliceerd: ${msg.url}\n-# Klaar met deze versie? Typ \`/changelog\` en klik op **🆕 ${version} afronden**. Tot die tijd kun je hem aanpassen en opnieuw publiceren.`,
+          embeds: [], components: [], attachments: [],
+        });
+      }
+
+      // Versie afronden: pas nu gaat de lijst leeg en begint de volgende versie
+      if (id === 'cl_reset') {
+        const st = loadState();
+        if (!st.current) return interaction.update({ content: 'ℹ️ Er is geen versie om af te ronden.', embeds: [], components: [], attachments: [] });
+        const done = st.current;
+        st.published.push({ version: done.version, title: done.title, at: done.at ?? Date.now(), by: done.by ?? interaction.user.id, ids: done.ids });
+        st.current = null;
+        saveState(st);
+        console.log(`[changelog] ${done.version} afgerond door ${interaction.user.tag}`);
+        return interaction.update({ content: `🆕 **${done.version}** is afgerond. De volgende changelog wordt **${nextVersion()}**.`, embeds: [], components: [], attachments: [] });
       }
     } catch (e) {
       console.error('[changelog]', e);
