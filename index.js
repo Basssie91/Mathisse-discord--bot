@@ -91,6 +91,9 @@ require('./src/suggestions')(client);
 // Rollenpaneel (meldingsrollen)
 require('./src/selfRoles')(client);
 
+// Promotie van andere Discord-servers
+require('./src/promo')(client);
+
 // Staff-overzicht van alle commands en rechten
 require('./src/staffOverview')(client);
 

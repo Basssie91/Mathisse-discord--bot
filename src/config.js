@@ -69,6 +69,9 @@ module.exports = {
   // Rollenpaneel (meldingsrollen kiezen)
   selfRolesChannelId: '1516133257014546715',
 
+  // Promotie van andere servers (zie src/promo.js voor de servers)
+  promoChannelId: '1516133257597419675',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

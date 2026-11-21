@@ -79,3 +79,6 @@ In `suggestionChannelId`: paneel met knop **💡 Suggestie indienen** (staat alt
 In `selfRolesChannelId`: knoppen voor de meldingsrollen 📋 Changelog, 📡 Content en 📢 Mededelingen (aan/uit). De bot maakt de rollen zelf aan zonder rechten (rolicoontje vanaf boostlevel 2, de emoji staat ook in de naam). Paneel en rollen worden bij elke start gecontroleerd en teruggezet.
 
 Bij het publiceren van een changelog wordt de rol 📋 Changelog getagd. 📢 Mededelingen tag je zelf.
+
+## Promotie
+In `promoChannelId` staat per server (lijst in `src/promo.js`) een embed met naam, icoon, ledenaantal en een Join-knop. Wordt bij elke start en elke 6 uur bijgewerkt en teruggezet als hij weg is.

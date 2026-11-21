@@ -42,6 +42,7 @@ const items = [
   { id: 'suggesties', section: '💡 Suggesties', text: 'Nieuw **suggestiepaneel**! Dien je idee in, stem met 👍/👎 en praat erover in het draadje' },
   { id: 'rollenpaneel', section: '🔔 Meldingen', text: 'Nieuw **rollenpaneel**: kies zelf of je meldingen wilt voor changelog, content en mededelingen' },
   { id: 'rollen-tag', section: '🔔 Meldingen', text: 'Bij een nieuwe changelog of contentmelding wordt de bijbehorende **meldingsrol getagd**' },
+  { id: 'promo', section: '🤝 Partners', text: 'Onze **testserver** en **roleplay server** staan nu in het promotiekanaal, met live ledenaantallen' },
   { id: 'cmd-changelog', section: '⌨️ Commando\'s', text: 'Nieuw: **/changelog** om updates zoals deze te plaatsen' },
   { id: 'cmd-opruimen', section: '⌨️ Commando\'s', text: 'Nieuw: **/opruimen** om berichten te verwijderen, eventueel alleen van één persoon' },
   { id: 'giveaways', section: '🎁 Giveaways', text: 'Nieuw: **/giveaway**! Doe mee met één klik op **🎉 Meedoen**, de winnaars worden willekeurig gekozen' },
