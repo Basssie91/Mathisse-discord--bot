@@ -33,6 +33,8 @@ function buildEmbed() {
   if (['online', 'maintenance'].includes(state.status)) {
     lines.push(`⏱️ Online sinds ${t(state.since)} (${t(state.since, 'R')})`);
     lines.push(`📶 Ping: **${client?.ws?.ping >= 0 ? `${client.ws.ping} ms` : '...'}**`);
+    const guild = client?.channels?.cache.get(cfg.statusChannelId)?.guild;
+    if (guild) lines.push(`👥 Leden: **${guild.memberCount}**`);
     lines.push(`🔁 Laatst gecontroleerd ${t(state.lastSeen, 'R')}`);
   } else {
     lines.push(`🕒 Sinds ${t(state.since)} (${t(state.since, 'R')})`);

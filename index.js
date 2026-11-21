@@ -3,6 +3,8 @@
 // - /restart: alleen voor de gebruikers in ALLOWED_RESTART_IDS
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, SlashCommandBuilder, MessageFlags } = require('discord.js');
+// "Made by Basssie91" onder elke embed (moet vóór de rest geladen worden)
+require('./src/credit');
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const BH_API_KEY = process.env.BOTHOSTING_API_KEY;
