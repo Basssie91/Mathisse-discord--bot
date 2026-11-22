@@ -58,6 +58,10 @@ async function youtubeFeed(channelId) {
 // Is het kanaal nu live op YouTube? De /live-pagina verwijst dan naar de lopende stream.
 async function youtubeLive(channelId) {
   const html = await get(`https://www.youtube.com/channel/${channelId}/live`);
+  // YouTube laat servers soms een toestemmings- of botcontrolepagina zien in plaats van het kanaal
+  if (/consent\.youtube\.com|confirm you.re not a bot|bevestig dat je geen bot bent/i.test(html) || !html.includes(channelId)) {
+    throw new Error('YouTube blokkeert de live-check (toestemmings- of botcontrolepagina)');
+  }
   if (!/"isLiveNow":\s*true/.test(html)) return null;
   const id = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/)?.[1]
     ?? html.match(/"videoId":"([\w-]{11})"/)?.[1];
@@ -168,6 +172,7 @@ async function checkOne(client, s) {
   if (s.platform === 'youtube') {
     // Eerst: is er nu een livestream? (één melding per stream)
     const live = await youtubeLive(s.channelId).catch((e) => { console.warn(`[content] ${s.name} live-check: ${e.message}`); return null; });
+    if (!checkedOnce.has(s.id)) { console.log(`[content] ${s.name} (YouTube): ${live ? `LIVE (${live.id})` : 'niet live'}`); checkedOnce.add(s.id); }
     if (live && s.liveId !== live.id) {
       await announce(client, s, { ...live, live: true });
       s.liveId = live.id;
@@ -187,11 +192,13 @@ async function checkOne(client, s) {
     return;
   }
   const st = s.platform === 'twitch' ? await twitchStatus(s.handle) : await kickStatus(s.handle);
+  if (!checkedOnce.has(s.id)) { console.log(`[content] ${s.name} (${PLATFORM[s.platform].label}): ${st.live ? 'LIVE' : 'niet live'}`); checkedOnce.add(s.id); }
   if (st.live && !s.live) await announce(client, s, st);
   s.live = st.live;
 }
 
 let checking = false;
+const checkedOnce = new Set(); // na een start één keer per kanaal de uitkomst loggen
 async function checkAll(client) {
   if (checking) return;
   checking = true;
