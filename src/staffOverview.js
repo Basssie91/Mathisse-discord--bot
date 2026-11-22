@@ -18,6 +18,8 @@ const admins = () => users(cfg.adminIds);
 // Wie mag welk command gebruiken (ontbreekt een command hier, dan komt het onder "Overig")
 const ACCESS = {
   commands: () => '👥 Iedereen',
+  verjaardag: () => '👥 Iedereen',
+  resetverjaardag: () => who(roles([cfg.staffRoleId, cfg.bestuurRoleId]), admins()),
   opruimen: () => who(roles(cfg.purgeRoleIds), users(cfg.purgeUserIds)),
   giveaway: () => who(roles(cfg.giveawayRoleIds), admins()),
   'staff-update': () => who(roles(cfg.staffUpdateRoleIds), admins()),
@@ -32,6 +34,8 @@ const ACCESS = {
 // Korte uitleg per command (anders de omschrijving van het command zelf)
 const SHORT = {
   commands: 'Overzicht voor leden',
+  verjaardag: 'Verjaardag invullen (1×)',
+  resetverjaardag: 'Verjaardag van een lid wissen',
   opruimen: 'Berichten verwijderen',
   giveaway: 'Giveaway starten',
   'staff-update': 'Aanname, promotie, degradatie of ontslag',

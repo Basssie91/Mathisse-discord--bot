@@ -72,6 +72,9 @@ module.exports = {
   // Promotie van andere servers (zie src/promo.js voor de servers)
   promoChannelId: '1516133257597419675',
 
+  // Verjaardagen: hier komen de felicitaties (leeg = geen felicitaties)
+  birthdayChannelId: '',
+
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
 

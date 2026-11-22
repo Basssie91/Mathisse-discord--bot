@@ -28,7 +28,7 @@ function build(interaction) {
     .addFields(
       {
         name: '⌨️ Commands voor iedereen',
-        value: `${cmd(client, 'commands')} • Dit overzicht`,
+        value: `${cmd(client, 'commands')} • Dit overzicht\n${cmd(client, 'verjaardag')} • Je verjaardag invullen`,
       },
       {
         name: '🎫 Tickets',

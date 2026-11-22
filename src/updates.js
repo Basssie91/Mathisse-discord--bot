@@ -60,6 +60,7 @@ const items = [
   { id: 'cmd-content', section: '⌨️ Commando\'s', text: 'Nieuw: **/content** opent een formulier om streamers en YouTubers toe te voegen, **/content-lijst** laat ze allemaal zien' },
   { id: 'cmd-staff-update', section: '🛡️ Staff', text: 'Nieuw: **/staff-update** om aannames, promoties, degradaties en ontslagen te plaatsen via een formulier' },
   { id: 'cmd-commands', section: '⌨️ Commando\'s', text: 'Nieuw: **/commands** laat zien welke commands en functies er zijn' },
+  { id: 'verjaardag', section: '🎂 Verjaardagen', text: 'Nieuw: **/verjaardag**! Vul je verjaardag in en krijg een felicitatie op je grote dag' },
   { id: 'staff-overzicht', section: '🛡️ Staff', text: 'Nieuw **staff-overzicht** met alle commands en wie ze kan gebruiken, wordt automatisch bijgewerkt' },
   { id: 'staffrol-auto', section: '🛡️ Staff', text: 'Je krijgt nu **automatisch de staffrol** bij een staff-functie, en verliest hem als je geen functie meer hebt' },
 ];
@@ -91,7 +92,7 @@ const nextVersion = () => loadState().current?.version ?? `v1.${loadState().publ
 const isAdmin = (user) => cfg.adminIds.includes(user.id);
 
 // Volgorde van de kopjes: eerst serverdingen, commando's en bot als laatste
-const RANK = ['🔔 Meldingen', '💡 Suggesties', '🎁 Giveaways', '📡 Content', '🎮 Spellen', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
+const RANK = ['🎂 Verjaardagen', '🔔 Meldingen', '💡 Suggesties', '🎁 Giveaways', '📡 Content', '🎮 Spellen', '🎫 Tickets', '👋 Welkom', '📜 Regels', '🤝 Partners', '🛡️ Staff', '⌨️ Commando\'s', '⚙️ Bot'];
 const rank = (name) => { const i = RANK.indexOf(name); return i === -1 ? RANK.length - 2 : i; };
 
 function buildEmbed(guild, list, title) {

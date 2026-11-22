@@ -46,6 +46,8 @@ const commands = [
   require('./src/content').listCommand,
   require('./src/staffUpdate').command,
   require('./src/help').command,
+  require('./src/birthday').command,
+  require('./src/birthday').resetCommand,
   require('./src/maintenance').command,
 ];
 
@@ -95,6 +97,9 @@ require('./src/selfRoles')(client);
 
 // Promotie van andere Discord-servers
 require('./src/promo')(client);
+
+// Verjaardagen (/verjaardag, /resetverjaardag)
+require('./src/birthday')(client);
 
 // Staff-overzicht van alle commands en rechten
 require('./src/staffOverview')(client);
