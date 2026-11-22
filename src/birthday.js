@@ -101,9 +101,16 @@ async function reset(interaction) {
   if (!d.users[user.id]) return interaction.reply({ content: `ℹ️ ${user} heeft nog geen verjaardag ingevuld.`, flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
   const old = pretty(d.users[user.id]);
   delete d.users[user.id];
+  delete d.announced[user.id]; // na opnieuw invullen kan hij (als het klopt) weer gefeliciteerd worden
   store.save(FILE, d);
+  // Heeft hij de rol 🎂 Jarig? Die gaat er ook af
+  let roleRemoved = false;
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
+  if (member && d.roleId && member.roles.cache.has(d.roleId)) {
+    roleRemoved = await member.roles.remove(d.roleId, 'Verjaardag gereset').then(() => true).catch(() => false);
+  }
   console.log(`[verjaardag] ${interaction.user.tag} resette de verjaardag van ${user.tag}`);
-  await interaction.reply({ content: `✅ De verjaardag van ${user} (**${old}**) is gewist. Hij kan hem nu opnieuw invullen met \`/verjaardag\`.`, flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
+  await interaction.reply({ content: `✅ De verjaardag van ${user} (**${old}**) is gewist${roleRemoved ? ' en de rol **🎂 Jarig** is weggehaald' : ''}. Hij kan hem nu opnieuw invullen met \`/verjaardag\`.`, flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
 }
 
 // Rol "🎂 Jarig" (wordt aangemaakt als hij er nog niet is)
