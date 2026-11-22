@@ -55,19 +55,41 @@ async function youtubeFeed(channelId) {
   return { name, entries };
 }
 
-// Is het kanaal nu live op YouTube? De /live-pagina verwijst dan naar de lopende stream.
-async function youtubeLive(channelId) {
+// Staat er op een YouTube-pagina een stream die NU live is? (meerdere kenmerken, YouTube wisselt vaak van opmaak)
+function pageIsLive(html) {
+  if (/"isLiveNow"\s*:\s*true|\\"isLiveNow\\"\s*:\s*true/.test(html)) return true;
+  // Schema.org-gegevens: een uitzending die begonnen is maar nog geen einddatum heeft
+  const broadcast = /itemprop="isLiveBroadcast"\s+content="True"/i.test(html);
+  const ended = /itemprop="endDate"/i.test(html);
+  if (broadcast && !ended) return true;
+  return /"isLive"\s*:\s*true/.test(html) && !ended;
+}
+const videoIdOf = (html) => html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/)?.[1];
+const titleOf = (html) => decode(html.match(/<meta name="title" content="([^"]*)"/)?.[1]
+  ?? html.match(/<title>([^<]*)<\/title>/)?.[1]?.replace(/ - YouTube$/, ''));
+
+// Is het kanaal nu live op YouTube?
+// 1) De /live-pagina van het kanaal (verwijst naar de lopende stream als die er is)
+// 2) Anders: de nieuwste video's uit de feed één voor één bekijken (een stream staat daar ook in)
+async function youtubeLive(channelId, debug = []) {
   const html = await get(`https://www.youtube.com/channel/${channelId}/live`);
-  // YouTube laat servers soms een toestemmings- of botcontrolepagina zien in plaats van het kanaal
-  if (/consent\.youtube\.com|confirm you.re not a bot|bevestig dat je geen bot bent/i.test(html) || !html.includes(channelId)) {
+  if (/consent\.youtube\.com|confirm you.re not a bot|bevestig dat je geen bot bent/i.test(html)) {
     throw new Error('YouTube blokkeert de live-check (toestemmings- of botcontrolepagina)');
   }
-  if (!/"isLiveNow":\s*true/.test(html)) return null;
-  const id = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/)?.[1]
-    ?? html.match(/"videoId":"([\w-]{11})"/)?.[1];
-  if (!id) return null;
-  const title = decode(html.match(/<meta name="title" content="([^"]*)"/)?.[1] ?? html.match(/<title>([^<]*)<\/title>/)?.[1]?.replace(/ - YouTube$/, ''));
-  return { id, title };
+  const liveId = videoIdOf(html);
+  debug.push(liveId ? `/live → video ${liveId}` : '/live → kanaalpagina (geen stream)');
+  if (liveId && pageIsLive(html)) return { id: liveId, title: titleOf(html) };
+
+  const feed = await youtubeFeed(channelId).catch(() => ({ entries: [] }));
+  const recent = feed.entries.filter((e) => Date.now() - e.published < 2 * 86400e3).slice(0, 3);
+  for (const e of recent) {
+    const page = await get(`https://www.youtube.com/watch?v=${e.id}`).catch(() => '');
+    const live = pageIsLive(page);
+    debug.push(`feed ${e.id}: ${live ? 'LIVE' : 'geen live'}`);
+    if (live) return { id: e.id, title: e.title || titleOf(page) };
+  }
+  if (!recent.length) debug.push('feed: geen video\'s van de laatste 2 dagen');
+  return null;
 }
 
 async function resolveYoutube(link) {
@@ -298,8 +320,10 @@ async function onCheck(interaction) {
     const p = PLATFORM[s.platform];
     try {
       if (s.platform === 'youtube') {
-        const live = await youtubeLive(s.channelId);
+        const debug = [];
+        const live = await youtubeLive(s.channelId, debug);
         lines.push(`${p.emoji} **${s.name}**: ${live ? `🔴 LIVE • [${live.title || 'stream'}](https://www.youtube.com/watch?v=${live.id})` : '⚫ niet live'}`);
+        lines.push(`-# ${debug.join(' • ')} • kanaal-id ${s.channelId}`);
       } else {
         const st = s.platform === 'twitch' ? await twitchStatus(s.handle) : await kickStatus(s.handle);
         lines.push(`${p.emoji} **${s.name}**: ${st.live ? `🔴 LIVE${st.title ? ` • ${st.title}` : ''}` : '⚫ niet live'}`);
@@ -363,4 +387,4 @@ module.exports = (client) => {
 module.exports.command = command;
 module.exports.listCommand = listCommand;
 module.exports.checkCommand = checkCommand;
-module.exports._test = { parseLink, youtubeFeed, youtubeLive, checkOne };
+module.exports._test = { parseLink, youtubeFeed, youtubeLive, checkOne, pageIsLive };
