@@ -44,6 +44,7 @@ const commands = [
   require('./src/giveaway').command,
   require('./src/content').command,
   require('./src/content').listCommand,
+  require('./src/content').checkCommand,
   require('./src/staffUpdate').command,
   require('./src/help').command,
   require('./src/birthday').command,

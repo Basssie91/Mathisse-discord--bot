@@ -223,6 +223,11 @@ const command = new SlashCommandBuilder()
   .setDescription('Een YouTuber of streamer toevoegen (je krijgt een formulier)')
   .setDMPermission(false)
   .toJSON();
+const checkCommand = new SlashCommandBuilder()
+  .setName('content-check')
+  .setDescription('Nu meteen controleren wie er live is (met uitleg als het misgaat)')
+  .setDMPermission(false)
+  .toJSON();
 const listCommand = new SlashCommandBuilder()
   .setName('content-lijst')
   .setDescription('Alle YouTubers en streamers bekijken en verwijderen')
@@ -283,6 +288,40 @@ async function onSubmit(interaction) {
   });
 }
 
+// /content-check: per kanaal laten zien wat de bot ziet (zonder console)
+async function onCheck(interaction) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  const l = list();
+  if (!l.length) return interaction.editReply('📭 Er staat nog niemand in de lijst. Voeg iemand toe met `/content`.');
+  const lines = [];
+  for (const s of l) {
+    const p = PLATFORM[s.platform];
+    try {
+      if (s.platform === 'youtube') {
+        const live = await youtubeLive(s.channelId);
+        lines.push(`${p.emoji} **${s.name}**: ${live ? `🔴 LIVE • [${live.title || 'stream'}](https://www.youtube.com/watch?v=${live.id})` : '⚫ niet live'}`);
+      } else {
+        const st = s.platform === 'twitch' ? await twitchStatus(s.handle) : await kickStatus(s.handle);
+        lines.push(`${p.emoji} **${s.name}**: ${st.live ? `🔴 LIVE${st.title ? ` • ${st.title}` : ''}` : '⚫ niet live'}`);
+      }
+    } catch (e) {
+      lines.push(`${p.emoji} **${s.name}**: ⚠️ ${e.message}`);
+    }
+  }
+  const ch = await interaction.client.channels.fetch(cfg.contentChannelId).catch(() => null);
+  const perms = ch?.permissionsFor(interaction.guild.members.me);
+  const canPost = perms?.has(['ViewChannel', 'SendMessages', 'EmbedLinks']);
+  await interaction.editReply({
+    embeds: [new EmbedBuilder().setColor(cfg.color).setTitle('📡  Content-check')
+      .setDescription([
+        ...lines,
+        '',
+        ch ? (canPost ? `✅ De bot kan berichten plaatsen in ${ch}.` : `❌ De bot mist rechten in ${ch} (bekijken, berichten sturen, links insluiten).`) : '❌ Het contentkanaal is niet gevonden.',
+        '-# Iemand die nu 🔴 LIVE is maar nog geen melding kreeg, krijgt die bij de volgende controle (binnen 3 minuten).',
+      ].join('\n').slice(0, 4000))],
+  });
+}
+
 async function onRemove(interaction) {
   if (!isAdmin(interaction.user)) return interaction.reply({ content: '❌ Geen toestemming.', flags: MessageFlags.Ephemeral });
   const l = list();
@@ -303,11 +342,12 @@ module.exports = (client) => {
   });
   client.on(Events.InteractionCreate, async (interaction) => {
     try {
-      if (interaction.isChatInputCommand() && ['content', 'content-lijst'].includes(interaction.commandName)) {
+      if (interaction.isChatInputCommand() && ['content', 'content-lijst', 'content-check'].includes(interaction.commandName)) {
         if (!isAdmin(interaction.user)) {
           return interaction.reply({ content: '❌ Alleen de beheerders van de bot kunnen dit.', flags: MessageFlags.Ephemeral });
         }
         if (interaction.commandName === 'content') return interaction.showModal(contentForm());
+        if (interaction.commandName === 'content-check') return onCheck(interaction);
         return interaction.reply({ ...overview(), flags: MessageFlags.Ephemeral });
       }
       if (interaction.isModalSubmit() && interaction.customId === 'content_form') return onSubmit(interaction);
@@ -322,4 +362,5 @@ module.exports = (client) => {
 };
 module.exports.command = command;
 module.exports.listCommand = listCommand;
+module.exports.checkCommand = checkCommand;
 module.exports._test = { parseLink, youtubeFeed, youtubeLive, checkOne };
