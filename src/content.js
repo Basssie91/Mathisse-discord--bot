@@ -287,6 +287,10 @@ async function onRemove(interaction) {
 
 module.exports = (client) => {
   client.once(Events.ClientReady, () => {
+    // Bij elke (her)start: iedereen die nu live is opnieuw melden
+    const l = list();
+    for (const x of l) { if (x.platform === 'youtube') x.liveId = null; else x.live = false; }
+    store(l);
     setTimeout(() => checkAll(client), 15000);
     setInterval(() => checkAll(client), CHECK_EVERY).unref();
   });
