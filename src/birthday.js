@@ -1,7 +1,9 @@
 // Verjaardagen
 //  /verjaardag        → formulier (dag, maand, optioneel geboortejaar). Kan maar één keer.
 //  /resetverjaardag   → staff wist iemands verjaardag, zodat hij hem opnieuw kan invullen.
-// Op iemands verjaardag (vanaf 09:00 Nederlandse tijd) feliciteert de bot in het verjaardagskanaal.
+// Op iemands verjaardag (vanaf 09:00 Nederlandse tijd) feliciteert de bot in het verjaardagskanaal
+// en krijgt de jarige de rol "🎂 Jarig" (de bot maakt die rol zelf aan, zonder rechten). De dag erna gaat de rol weer weg.
+// Vul je je verjaardag in op de dag zelf, dan krijg je meteen een felicitatie.
 const {
   Events, SlashCommandBuilder, EmbedBuilder, MessageFlags, ModalBuilder, LabelBuilder,
   TextInputBuilder, TextInputStyle, StringSelectMenuBuilder,
@@ -79,10 +81,15 @@ async function submit(interaction) {
   d.users[interaction.user.id] = { day, month, year, setAt: Date.now() };
   store.save(FILE, d);
   console.log(`[verjaardag] ${interaction.user.tag} vulde zijn verjaardag in`);
+  const today = isToday(d.users[interaction.user.id], nlNow());
   await interaction.reply({
-    content: `🎂 Opgeslagen: **${pretty(d.users[interaction.user.id])}**! Op je verjaardag krijg je een felicitatie.\n-# Je kunt dit maar één keer invullen. Klopt het niet? Vraag het team om een reset.`,
+    content: today
+      ? `🎂 Opgeslagen: **${pretty(d.users[interaction.user.id])}**. Hé, dat is vandaag! Gefeliciteerd! 🎉`
+      : `🎂 Opgeslagen: **${pretty(d.users[interaction.user.id])}**! Op je verjaardag krijg je een felicitatie.\n-# Je kunt dit maar één keer invullen. Klopt het niet? Vraag het team om een reset.`,
     flags: MessageFlags.Ephemeral,
   });
+  // Vandaag jarig? Meteen feliciteren (ook vóór 09:00)
+  if (today) check(interaction.client, { force: true }).catch(() => {});
 }
 
 async function reset(interaction) {
@@ -99,40 +106,70 @@ async function reset(interaction) {
   await interaction.reply({ content: `✅ De verjaardag van ${user} (**${old}**) is gewist. Hij kan hem nu opnieuw invullen met \`/verjaardag\`.`, flags: MessageFlags.Ephemeral, allowedMentions: { parse: [] } });
 }
 
+// Rol "🎂 Jarig" (wordt aangemaakt als hij er nog niet is)
+const ROLE_NAME = '🎂 Jarig';
+async function ensureRole(guild) {
+  const d = load();
+  let role = d.roleId && (guild.roles.cache.get(d.roleId) ?? await guild.roles.fetch(d.roleId).catch(() => null));
+  if (!role) role = guild.roles.cache.find((r) => r.name === ROLE_NAME);
+  if (!role) {
+    role = await guild.roles.create({
+      name: ROLE_NAME, color: '#FF73FA', hoist: true, permissions: [],
+      ...(guild.premiumTier >= 2 ? { unicodeEmoji: '🎂' } : {}),
+      reason: 'Verjaardagsrol',
+    });
+    console.log('[verjaardag] Rol 🎂 Jarig aangemaakt');
+  }
+  if (d.roleId !== role.id) { d.roleId = role.id; store.save(FILE, d); }
+  return role;
+}
+
+// Is deze verjaardag vandaag? (29 februari telt in een jaar zonder 29 februari op 28 februari)
+function isToday(b, now) {
+  if (b.month === now.month && b.day === now.day) return true;
+  const isLeapYear = new Date(Date.UTC(now.year, 1, 29)).getUTCMonth() === 1;
+  return !isLeapYear && b.month === 2 && b.day === 29 && now.month === 2 && now.day === 28;
+}
+
 // Elke 10 minuten: is het vandaag iemands verjaardag (en is het na 09:00)? Dan feliciteren.
-async function check(client) {
+async function check(client, { force = false } = {}) {
   if (!cfg.birthdayChannelId) return;
   const now = nlNow();
-  if (now.hour < 9) return;
-  const d = load();
-  const todayKey = `${now.year}-${now.month}-${now.day}`;
-  const isLeapYear = new Date(Date.UTC(now.year, 1, 29)).getUTCMonth() === 1;
-  const jarig = Object.entries(d.users).filter(([id, b]) => {
-    if (d.announced[id] === todayKey) return false;
-    if (b.month === now.month && b.day === now.day) return true;
-    return !isLeapYear && b.month === 2 && b.day === 29 && now.month === 2 && now.day === 28; // 29 feb → 28 feb
-  });
-  if (!jarig.length) return;
-
   const channel = await client.channels.fetch(cfg.birthdayChannelId).catch(() => null);
   if (!channel) return console.warn('[verjaardag] Verjaardagskanaal niet gevonden');
+  const { guild } = channel;
+  const role = await ensureRole(guild).catch((e) => console.warn('[verjaardag] Rol:', e.message));
+  const d = load();
+  const todayKey = `${now.year}-${now.month}-${now.day}`;
+
+  // Rol weghalen bij wie niet (meer) jarig is
+  if (role) {
+    for (const m of role.members.values()) {
+      const b = d.users[m.id];
+      if (!b || !isToday(b, now)) await m.roles.remove(role, 'Niet meer jarig').catch(() => {});
+    }
+  }
+  if (now.hour < 9 && !force) return;
+
+  const jarig = Object.entries(d.users).filter(([id, b]) => d.announced[id] !== todayKey && isToday(b, now));
   for (const [id, b] of jarig) {
-    const member = await channel.guild.members.fetch(id).catch(() => null);
+    const member = await guild.members.fetch(id).catch(() => null);
     d.announced[id] = todayKey;
+    store.save(FILE, d);
     if (!member) continue; // niet meer in de server
+    if (role) await member.roles.add(role, 'Jarig!').catch((e) => console.warn('[verjaardag] Rol geven mislukt:', e.message));
     const age = b.year ? now.year - b.year : null;
     await channel.send({
       content: `🎉 ${member}`,
       embeds: [new EmbedBuilder()
         .setColor(cfg.color)
         .setTitle(`🎂  Gefeliciteerd, ${member.displayName}!`)
-        .setDescription(`Vandaag is ${member} jarig${age ? ` en wordt **${age} jaar**` : ''}! 🥳\nVan harte gefeliciteerd namens iedereen in **${channel.guild.name}**! 🎈🎁`)
+        .setDescription(`Vandaag is ${member} jarig${age ? ` en wordt **${age} jaar**` : ''}! 🥳\nVan harte gefeliciteerd namens iedereen in **${guild.name}**! 🎈🎁`)
         .setThumbnail(member.displayAvatarURL({ size: 256 }))],
       allowedMentions: { users: [id] },
     }).catch((e) => console.warn('[verjaardag] Felicitatie mislukt:', e.message));
     console.log(`[verjaardag] ${member.user.tag} gefeliciteerd`);
   }
-  store.save(FILE, d);
 }
 
 module.exports = (client) => {

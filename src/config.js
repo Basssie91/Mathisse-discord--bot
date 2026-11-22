@@ -73,7 +73,7 @@ module.exports = {
   promoChannelId: '1516133257597419675',
 
   // Verjaardagen: hier komen de felicitaties (leeg = geen felicitaties)
-  birthdayChannelId: '',
+  birthdayChannelId: '1516133257597419680',
 
   color: '#F0C14B', // goud, past bij het logo
   categoryName: '🎫 TICKETS',
