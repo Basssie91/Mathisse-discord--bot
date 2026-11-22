@@ -55,6 +55,17 @@ async function youtubeFeed(channelId) {
   return { name, entries };
 }
 
+// Is het kanaal nu live op YouTube? De /live-pagina verwijst dan naar de lopende stream.
+async function youtubeLive(channelId) {
+  const html = await get(`https://www.youtube.com/channel/${channelId}/live`);
+  if (!/"isLiveNow":\s*true/.test(html)) return null;
+  const id = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/)?.[1]
+    ?? html.match(/"videoId":"([\w-]{11})"/)?.[1];
+  if (!id) return null;
+  const title = decode(html.match(/<meta name="title" content="([^"]*)"/)?.[1] ?? html.match(/<title>([^<]*)<\/title>/)?.[1]?.replace(/ - YouTube$/, ''));
+  return { id, title };
+}
+
 async function resolveYoutube(link) {
   let channelId = link.url.match(/\/channel\/(UC[\w-]{22})/)?.[1];
   if (!channelId) {
@@ -86,7 +97,8 @@ async function twitchStatus(handle) {
 
 async function resolveTwitch(link) {
   const s = await twitchStatus(link.handle); // gooit een fout als het kanaal niet bestaat
-  return { platform: 'twitch', handle: link.handle, name: link.handle, url: `https://www.twitch.tv/${link.handle}`, live: s.live };
+  // live: false, zodat een stream die nu al bezig is bij de eerstvolgende controle alsnog gemeld wordt
+  return { platform: 'twitch', handle: link.handle, name: link.handle, url: `https://www.twitch.tv/${link.handle}`, live: false };
 }
 
 // ---------- Kick ----------
@@ -105,11 +117,12 @@ async function kickStatus(handle) {
 
 async function resolveKick(link) {
   const s = await kickStatus(link.handle);
-  return { platform: 'kick', handle: link.handle, name: s.name, url: `https://kick.com/${link.handle}`, live: s.live };
+  return { platform: 'kick', handle: link.handle, name: s.name, url: `https://kick.com/${link.handle}`, live: false };
 }
 
 // ---------- Melding plaatsen ----------
 async function announce(client, s, data) {
+  console.log(`[content] Melding: ${s.name} (${s.platform}${data.live || s.platform !== 'youtube' ? ', live' : ', video'})`);
   const channel = await client.channels.fetch(cfg.contentChannelId).catch(() => null);
   if (!channel) return console.warn('[content] Contentkanaal niet gevonden');
   const p = PLATFORM[s.platform];
@@ -121,7 +134,9 @@ async function announce(client, s, data) {
   if (s.platform === 'youtube') {
     const link = `https://www.youtube.com/watch?v=${data.id}`;
     await channel.send({
-      content: `${ping}📺 **${s.name}** heeft een nieuwe video geplaatst!\n${link}`,
+      content: data.live
+        ? `${ping}🔴 **${s.name}** is nu live op YouTube! Kom kijken!\n${link}`
+        : `${ping}📺 **${s.name}** heeft een nieuwe video geplaatst!\n${link}`,
       allowedMentions,
     });
     return;
@@ -151,11 +166,23 @@ async function announce(client, s, data) {
 // ---------- Controleren ----------
 async function checkOne(client, s) {
   if (s.platform === 'youtube') {
+    // Eerst: is er nu een livestream? (één melding per stream)
+    const live = await youtubeLive(s.channelId).catch((e) => { console.warn(`[content] ${s.name} live-check: ${e.message}`); return null; });
+    if (live && s.liveId !== live.id) {
+      await announce(client, s, { ...live, live: true });
+      s.liveId = live.id;
+      s.seen = [live.id, ...(s.seen ?? [])]; // niet nog eens als "nieuwe video" melden
+    }
     const feed = await youtubeFeed(s.channelId);
     if (feed.name) s.name = feed.name;
     // Nieuwe video's: nog niet gezien en niet ouder dan 2 dagen (oudste eerst)
     const fresh = feed.entries.filter((e) => !s.seen.includes(e.id) && Date.now() - e.published < 2 * 86400e3).reverse();
-    for (const e of fresh) await announce(client, s, e);
+    for (const e of fresh) {
+      // Livestreams (ook geplande) staan ook in de feed; die meldt de live-check hierboven al
+      const page = await get(`https://www.youtube.com/watch?v=${e.id}`).catch(() => '');
+      if (/"isLiveContent":\s*true|"isUpcoming":\s*true/.test(page)) continue;
+      await announce(client, s, e);
+    }
     s.seen = [...new Set([...feed.entries.map((e) => e.id), ...s.seen])].slice(0, 50);
     return;
   }
@@ -170,6 +197,8 @@ async function checkAll(client) {
   checking = true;
   try {
     const l = list();
+    // Eenmalig: Twitch/Kick-streamers die toegevoegd werden terwijl ze live waren, stonden onterecht op "al gemeld"
+    for (const s of l) if (s.platform !== 'youtube' && !s.fixedLive) { s.live = false; s.fixedLive = true; }
     for (const s of l) {
       try { await checkOne(client, s); } catch (e) { console.warn(`[content] ${s.name}: ${e.message}`); }
     }
@@ -282,4 +311,4 @@ module.exports = (client) => {
 };
 module.exports.command = command;
 module.exports.listCommand = listCommand;
-module.exports._test = { parseLink, youtubeFeed };
+module.exports._test = { parseLink, youtubeFeed, youtubeLive, checkOne };
